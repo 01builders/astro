@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["types"]
+members = ["crates/types"]
 
 [workspace.package]
 license = "Apache-2.0"
@@ -9,10 +9,10 @@ rust-version = "1.86.0"
 
 
 [workspace.dependencies]
-commonware-consensus = "0.0.57"
-commonware-cryptography = "0.0.57"
-commonware-codec = "0.0.57"
-commonware-utils = "0.0.57"
+commonware-consensus = "0.0.58"
+commonware-cryptography = "0.0.58"
+commonware-codec = "0.0.58"
+commonware-utils = "0.0.58"
 
 bytes = "1.10.1"
 serde = { version = "1.0.219", features = ["derive"] }
