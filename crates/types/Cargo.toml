@@ -1,0 +1,16 @@
+[package]
+name = "astro-types"
+version = "0.1.0"
+edition = "2024"
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+commonware-consensus.workspace = true
+commonware-cryptography.workspace = true
+commonware-codec.workspace = true
+commonware-utils.workspace = true
+bytes.workspace = true
+toml.workspace = true
+serde.workspace = true
