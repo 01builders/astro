@@ -1,0 +1,24 @@
+# @see https://buf.build/docs/configuration/v2/buf-gen-yaml
+version: v2
+
+plugins:
+  # Generate Rust using neoeinstein plugins
+  - remote: buf.build/community/neoeinstein-prost:v0.4.0
+    out: ./crates/astro-proto-types/src/codegen
+    opt:
+      - bytes=.
+      - file_descriptor_set
+
+  - remote: buf.build/community/neoeinstein-prost-crate:v0.4.1
+    out: ./crates/astro-proto-types/src/codegen
+    opt:
+      - no_features
+  - remote: buf.build/community/neoeinstein-tonic:v0.4.1
+    out: ./crates/astro-proto-types/src/codegen
+    opt:
+      - compile_well_known_types
+
+inputs:
+  - git_repo: https://github.com/cometbft/cometbft.git
+    branch: main
+    subdir: proto

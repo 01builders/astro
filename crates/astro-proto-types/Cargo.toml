@@ -1,0 +1,14 @@
+[package]
+name = "astro-proto-types"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+prost = "0.13.3"
+tonic = "0.12.3"
+bytes = { workspace = true }
+prost-types = { version = "0.13.3", features = ["std"] }
+
