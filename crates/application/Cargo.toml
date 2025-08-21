@@ -21,3 +21,4 @@ commonware-runtime.workspace = true
 futures.workspace = true
 rand.workspace = true
 tracing.workspace = true
+tonic.workspace = true
