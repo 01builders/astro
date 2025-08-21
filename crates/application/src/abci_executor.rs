@@ -73,7 +73,7 @@ impl AbciExecutor {
         &mut self,
         genesis: Vec<u8>,
     ) -> Result<[u8; 32], AbciExecutorError> {
-        let request = InitChainRequest {
+        let request = RequestInitChain {
             time: None,
             chain_id: "".to_string(),
             consensus_params: None,
