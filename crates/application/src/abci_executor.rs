@@ -1,9 +1,9 @@
+use crate::block_result::BlockResult;
 use astro_proto_types::cometbft::abci::v1beta3::{
     RequestFinalizeBlock, ResponseFinalizeBlock, abci_client::AbciClient,
 };
 use astro_types::Block;
 use tonic::transport::Channel;
-use crate::block_result::BlockResult;
 
 #[derive(Debug, thiserror::Error)]
 pub enum AbciExecutorError {
@@ -35,7 +35,6 @@ impl AbciExecutor {
         &mut self,
         block: &Block,
     ) -> Result<BlockResult, AbciExecutorError> {
-
         let request_finalize_block = self.convert_block_to_finalize_request(block);
 
         let resp: ResponseFinalizeBlock = self
@@ -44,7 +43,7 @@ impl AbciExecutor {
             .await?
             .into_inner();
 
-        self.convert_cometbft_response_to_digest(&resp)
+        self.convert_cometbft_response_to_digest(resp)
     }
 
     pub(super) fn convert_block_to_finalize_request(&self, block: &Block) -> RequestFinalizeBlock {
@@ -53,9 +52,12 @@ impl AbciExecutor {
 
     pub(super) fn convert_cometbft_response_to_digest(
         &self,
-        resp_block: &ResponseFinalizeBlock,
+        resp_block: ResponseFinalizeBlock,
     ) -> Result<BlockResult, AbciExecutorError> {
-        // todo convert to block result
-        Ok(BlockResult {})
+        Ok(BlockResult {
+            app_hash: resp_block.app_hash.iter().as_slice().try_into()?,
+            events: resp_block.events,
+            tx_results: resp_block.tx_results,
+        })
     }
 }
