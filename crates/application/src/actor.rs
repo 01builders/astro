@@ -5,7 +5,7 @@ use super::{
 use crate::abci_executor::AbciExecutor;
 use crate::block_result::BlockResult;
 use crate::{supervisor::Supervisor, utils::OneshotClosedFut};
-use astro_types::Block;
+use astro_types::{Block, Digest};
 use commonware_consensus::{marshal, threshold_simplex::types::View};
 use commonware_cryptography::{
     Committable, Digestible, Hasher, Sha256, bls12381::primitives::variant::MinSig,
@@ -13,7 +13,7 @@ use commonware_cryptography::{
 use commonware_macros::select;
 use commonware_runtime::{Clock, Handle, Metrics, Spawner};
 use commonware_utils::SystemTimeExt;
-use futures::channel::mpsc::{Receiver, Sender, UnboundedReceiver, UnboundedSender};
+use futures::channel::mpsc::{Receiver, Sender, UnboundedSender};
 use futures::{SinkExt, StreamExt};
 use futures::{channel::mpsc, future::try_join};
 use futures::{future, future::Either};
@@ -75,161 +75,184 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
         let genesis_digest = genesis.digest();
         let built: Option<(View, Block)> = None;
         let built = Arc::new(Mutex::new(built));
+
         while let Some(message) = self.mailbox.next().await {
-            match message {
-                Message::Genesis { response } => {
-                    // Use the digest of the genesis message as the initial
-                    // payload.
-                    let genesis = self
-                        .fetch_genesis_file()
-                        .await
-                        .expect("Genesis fetching failed");
-                    let app_hash = self
-                        .abci_executor
-                        .do_genesis(genesis)
-                        .await
-                        .expect("Abci executor genesis failed");
+            self.handle_message(
+                message,
+                &mut marshal,
+                genesis_digest,
+                &genesis,
+                built.clone(),
+            )
+            .await;
+        }
+    }
 
-                    // TODO: replace genesis with app_hash
-                    let _ = response.send(genesis_digest);
-                }
-                Message::Propose {
-                    view,
-                    parent,
-                    mut response,
-                } => {
-                    // Get the parent block
-                    let parent_request = if parent.1 == genesis_digest {
-                        Either::Left(future::ready(Ok(genesis.clone())))
-                    } else {
-                        Either::Right(marshal.subscribe(Some(parent.0), parent.1).await)
-                    };
+    /// Handle a single message from the mailbox.
+    async fn handle_message(
+        &mut self,
+        message: Message,
+        marshal: &mut marshal::Mailbox<MinSig, Block>,
+        genesis_digest: Digest,
+        genesis: &Block,
+        built: Arc<Mutex<Option<(View, Block)>>>,
+    ) {
+        match message {
+            Message::Genesis { response } => {
+                // Use the digest of the genesis message as the initial
+                // payload.
+                let genesis = self
+                    .fetch_genesis_file()
+                    .await
+                    .expect("Genesis fetching failed");
+                let _app_hash = self
+                    .abci_executor
+                    .do_genesis(genesis)
+                    .await
+                    .expect("Abci executor genesis failed");
 
-                    // Wait for the parent block to be available or the request to be cancelled in a separate task (to
-                    // continue processing other messages)
-                    self.context.with_label("propose").spawn({
-                        let built = built.clone();
-                        move |context| async move {
-                            let response_closed = OneshotClosedFut::new(&mut response);
-                            select! {
-                                parent = parent_request => {
-                                    // Get the parent block
-                                    let parent = parent.unwrap();
+                // TODO: replace genesis with app_hash
+                let _ = response.send(genesis_digest);
+            }
+            Message::Propose {
+                view,
+                parent,
+                mut response,
+            } => {
+                // Get the parent block
+                let parent_request = if parent.1 == genesis_digest {
+                    Either::Left(future::ready(Ok(genesis.clone())))
+                } else {
+                    Either::Right(marshal.subscribe(Some(parent.0), parent.1).await)
+                };
 
-                                    // Create a new block
-                                    let mut current = context.current().epoch_millis();
-                                    if current <= parent.timestamp {
-                                        current = parent.timestamp + 1;
-                                    }
-                                    let block = Block::new(parent.digest(), parent.height+1, current, self.pull_txs().await);
-                                    let digest = block.digest();
-                                    {
-                                        let mut built = built.lock().unwrap();
-                                        *built = Some((view, block));
-                                    }
+                // Pull transactions before spawning the task
+                let txs = self.pull_txs().await;
 
-                                    // Send the digest to the consensus
-                                    let result = response.send(digest);
-                                    info!(view, ?digest, success=result.is_ok(), "proposed new block");
-                                },
-                                _ = response_closed => {
-                                    // The response was cancelled
-                                    warn!(view, "propose aborted");
+                // Wait for the parent block to be available or the request to be cancelled in a separate task (to
+                // continue processing other messages)
+                self.context.with_label("propose").spawn({
+                    let built = built.clone();
+                    move |context| async move {
+                        let response_closed = OneshotClosedFut::new(&mut response);
+                        select! {
+                            parent = parent_request => {
+                                // Get the parent block
+                                let parent = parent.unwrap();
+
+                                // Create a new block
+                                let mut current = context.current().epoch_millis();
+                                if current <= parent.timestamp {
+                                    current = parent.timestamp + 1;
                                 }
+                                let block = Block::new(parent.digest(), parent.height+1, current, txs);
+                                let digest = block.digest();
+                                {
+                                    let mut built = built.lock().unwrap();
+                                    *built = Some((view, block));
+                                }
+
+                                // Send the digest to the consensus
+                                let result = response.send(digest);
+                                info!(view, ?digest, success=result.is_ok(), "proposed new block");
+                            },
+                            _ = response_closed => {
+                                // The response was cancelled
+                                warn!(view, "propose aborted");
                             }
                         }
-                    });
-                }
-                Message::Broadcast { payload } => {
-                    // Check if the last built is equal
-                    let Some(built) = built.lock().unwrap().clone() else {
-                        warn!(?payload, "missing block to broadcast");
-                        continue;
-                    };
+                    }
+                });
+            }
+            Message::Broadcast { payload } => {
+                // Check if the last built is equal
+                let Some(built) = built.lock().unwrap().clone() else {
+                    warn!(?payload, "missing block to broadcast");
+                    return;
+                };
 
-                    // Send the block to the syncer
-                    debug!(
-                        ?payload,
-                        view = built.0,
-                        height = built.1.height,
-                        "broadcast requested"
-                    );
-                    marshal.broadcast(built.1.clone()).await;
-                }
-                Message::Verify {
-                    view,
-                    parent,
-                    payload,
-                    mut response,
-                } => {
-                    // Get the parent and current block
-                    let parent_request = if parent.1 == genesis_digest {
-                        Either::Left(future::ready(Ok(genesis.clone())))
-                    } else {
-                        Either::Right(marshal.subscribe(Some(parent.0), parent.1).await)
-                    };
+                // Send the block to the syncer
+                debug!(
+                    ?payload,
+                    view = built.0,
+                    height = built.1.height,
+                    "broadcast requested"
+                );
+                marshal.broadcast(built.1.clone()).await;
+            }
+            Message::Verify {
+                view,
+                parent,
+                payload,
+                mut response,
+            } => {
+                // Get the parent and current block
+                let parent_request = if parent.1 == genesis_digest {
+                    Either::Left(future::ready(Ok(genesis.clone())))
+                } else {
+                    Either::Right(marshal.subscribe(Some(parent.0), parent.1).await)
+                };
 
-                    // Wait for the blocks to be available or the request to be cancelled in a separate task (to
-                    // continue processing other messages)
-                    self.context.with_label("verify").spawn({
-                        let mut marshal = marshal.clone();
-                        move |context| async move {
-                            let requester =
-                                try_join(parent_request, marshal.subscribe(None, payload).await);
-                            let response_closed = OneshotClosedFut::new(&mut response);
-                            select! {
-                                result = requester => {
-                                    // Unwrap the results
-                                    let (parent, block) = result.unwrap();
+                // Wait for the blocks to be available or the request to be cancelled in a separate task (to
+                // continue processing other messages)
+                self.context.with_label("verify").spawn({
+                    let mut marshal = marshal.clone();
+                    move |context| async move {
+                        let requester =
+                            try_join(parent_request, marshal.subscribe(None, payload).await);
+                        let response_closed = OneshotClosedFut::new(&mut response);
+                        select! {
+                            result = requester => {
+                                // Unwrap the results
+                                let (parent, block) = result.unwrap();
 
-                                    // Verify the block
-                                    if block.height != parent.height + 1 {
-                                        let _ = response.send(false);
-                                        return;
-                                    }
-                                    if block.parent != parent.digest() {
-                                        let _ = response.send(false);
-                                        return;
-                                    }
-                                    if block.timestamp <= parent.timestamp {
-                                        let _ = response.send(false);
-                                        return;
-                                    }
-                                    let current = context.current().epoch_millis();
-                                    if block.timestamp > current + SYNCHRONY_BOUND {
-                                        let _ = response.send(false);
-                                        return;
-                                    }
-
-                                    // Persist the verified block
-                                    marshal.verified(view, block).await;
-
-                                    // Send the verification result to the consensus
-                                    let _ = response.send(true);
-                                },
-                                _ = response_closed => {
-                                    // The response was cancelled
-                                    warn!(view, "verify aborted");
+                                // Verify the block
+                                if block.height != parent.height + 1 {
+                                    let _ = response.send(false);
+                                    return;
                                 }
+                                if block.parent != parent.digest() {
+                                    let _ = response.send(false);
+                                    return;
+                                }
+                                if block.timestamp <= parent.timestamp {
+                                    let _ = response.send(false);
+                                    return;
+                                }
+                                let current = context.current().epoch_millis();
+                                if block.timestamp > current + SYNCHRONY_BOUND {
+                                    let _ = response.send(false);
+                                    return;
+                                }
+
+                                // Persist the verified block
+                                marshal.verified(view, block).await;
+
+                                // Send the verification result to the consensus
+                                let _ = response.send(true);
+                            },
+                            _ = response_closed => {
+                                // The response was cancelled
+                                warn!(view, "verify aborted");
                             }
                         }
-                    });
-                }
-                Message::Finalized { block } => {
-                    // In an application that maintains state, you would compute the state transition function here.
-                    //
-                    // After an unclean shutdown, it is possible that the application may be asked to process a block it has already seen (which it can simply ignore).
-                    let resp = self.abci_executor.finalize_block(&block).await.unwrap();
+                    }
+                });
+            }
+            Message::Finalized { block } => {
+                // In an application that maintains state, you would compute the state transition function here.
+                //
+                // After an unclean shutdown, it is possible that the application may be asked to process a block it has already seen (which it can simply ignore).
+                let resp = self.abci_executor.finalize_block(&block).await.unwrap();
 
-                    // send to block result handler
-                    self.block_results_handler.send(resp).await.unwrap();
+                // send to block result handler
+                self.block_results_handler.send(resp).await.unwrap();
 
-                    info!(
-                        height = block.height,
-                        digest = ?block.commitment(),
-                        "processed block"
-                    );
-                }
+                info!(
+                    height = block.height,
+                    digest = ?block.commitment(),
+                    "processed block"
+                );
             }
         }
     }
