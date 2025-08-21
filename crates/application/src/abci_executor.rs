@@ -2,6 +2,7 @@ use crate::block_result::BlockResult;
 use astro_proto_types::cometbft::abci::v1beta3::{
     RequestFinalizeBlock, ResponseFinalizeBlock, abci_client::AbciClient,
 };
+use astro_proto_types::cometbft::abci::v2::InitChainRequest;
 use astro_types::Block;
 use tonic::transport::Channel;
 
@@ -17,6 +18,8 @@ pub struct AbciExecutor {
     original_endpoint: String,
     client: AbciClient<Channel>,
 }
+
+impl AbciExecutor {}
 
 impl AbciExecutor {
     pub async fn connect(endpoint: &str) -> Result<Self, tonic::transport::Error> {
@@ -59,5 +62,26 @@ impl AbciExecutor {
             events: resp_block.events,
             tx_results: resp_block.tx_results,
         })
+    }
+
+    pub(crate) async fn do_genesis(
+        &mut self,
+        genesis: Vec<u8>,
+    ) -> Result<[u8; 32], AbciExecutorError> {
+        let resp = self.client
+            .init_chain(
+                InitChainRequest {
+                    time: None,
+                    chain_id: "".to_string(),
+                    consensus_params: None,
+                    validators: vec![],
+                    app_state_bytes: genesis.into(),
+                    initial_height: 0,
+                }
+                .into(),
+            )
+            .await?.into_inner();
+        
+        Ok(resp.app_hash.iter().as_ref().try_into()?)
     }
 }

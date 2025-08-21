@@ -4,7 +4,6 @@ use super::{
 };
 use crate::abci_executor::AbciExecutor;
 use crate::block_result::BlockResult;
-use crate::genesis::get_genesis_tx;
 use crate::{supervisor::Supervisor, utils::OneshotClosedFut};
 use astro_types::Block;
 use commonware_consensus::{marshal, threshold_simplex::types::View};
@@ -72,7 +71,7 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
         // Compute genesis digest
         self.hasher.update(GENESIS);
         let genesis_parent = self.hasher.finalize();
-        let genesis = Block::new(genesis_parent, 0, 0, get_genesis_tx().await); // TODO: genesis
+        let genesis = Block::new(genesis_parent, 0, 0, vec![]);
         let genesis_digest = genesis.digest();
         let built: Option<(View, Block)> = None;
         let built = Arc::new(Mutex::new(built));
@@ -81,6 +80,17 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
                 Message::Genesis { response } => {
                     // Use the digest of the genesis message as the initial
                     // payload.
+                    let genesis = self
+                        .fetch_genesis_file()
+                        .await
+                        .expect("Genesis fetching failed");
+                    let app_hash = self
+                        .abci_executor
+                        .do_genesis(genesis)
+                        .await
+                        .expect("Abci executor genesis failed");
+
+                    // TODO: replace genesis with app_hash
                     let _ = response.send(genesis_digest);
                 }
                 Message::Propose {
