@@ -9,14 +9,20 @@ rust-version = "1.86.0"
 
 
 [workspace.dependencies]
-astro-types = { path = "./crates/types"}
+astro-types = { path = "crates/types"}
+astro-proto-types = { path = "crates/astro-proto-types"}
 
 commonware-consensus = "0.0.58"
 commonware-cryptography = "0.0.58"
 commonware-codec = "0.0.58"
+commonware-macros = "0.0.58"
+commonware-resolver = "0.0.58"
+commonware-runtime = "0.0.58"
 commonware-utils = "0.0.58"
 
 bytes = "1.10.1"
 futures = "0.3.31"
+rand = "0.9.2"
 serde = { version = "1.0.219", features = ["derive"] }
 toml = "0.9.2"
+tracing = "0.1.41"
