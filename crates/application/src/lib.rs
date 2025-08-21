@@ -28,4 +28,7 @@ pub struct Config {
 
     /// The underlying ABCI client endpoint.
     pub abci_app_endpoint: String,
+    
+    /// Maximum number of Tx in the mempool
+    pub max_pending_txs: usize,
 }

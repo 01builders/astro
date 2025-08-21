@@ -5,7 +5,6 @@ use super::{
 use crate::abci_executor::AbciExecutor;
 use crate::block_result::BlockResult;
 use crate::genesis::get_genesis_tx;
-use crate::propose::pull_txs;
 use crate::{supervisor::Supervisor, utils::OneshotClosedFut};
 use astro_types::Block;
 use commonware_consensus::{marshal, threshold_simplex::types::View};
@@ -15,7 +14,7 @@ use commonware_cryptography::{
 use commonware_macros::select;
 use commonware_runtime::{Clock, Handle, Metrics, Spawner};
 use commonware_utils::SystemTimeExt;
-use futures::channel::mpsc::UnboundedSender;
+use futures::channel::mpsc::{Receiver, Sender, UnboundedReceiver, UnboundedSender};
 use futures::{SinkExt, StreamExt};
 use futures::{channel::mpsc, future::try_join};
 use futures::{future, future::Either};
@@ -33,9 +32,10 @@ const SYNCHRONY_BOUND: u64 = 500;
 pub struct Actor<R: Rng + Spawner + Metrics + Clock> {
     context: R,
     hasher: Sha256,
-    mailbox: mpsc::Receiver<Message>,
+    mailbox: Receiver<Message>,
     abci_executor: AbciExecutor,
     block_results_handler: UnboundedSender<BlockResult>,
+    pub(super) mempool_rx: Receiver<Vec<u8>>,
 }
 
 impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
@@ -45,8 +45,9 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
         config: Config,
         abci_executor: AbciExecutor,
         block_results_handler: UnboundedSender<BlockResult>,
-    ) -> (Self, Supervisor, Mailbox) {
+    ) -> (Self, Supervisor, Mailbox, Sender<Vec<u8>>) {
         let (sender, mailbox) = mpsc::channel(config.mailbox_size);
+        let (mempool_tx, mempool_rx) = mpsc::channel(config.max_pending_txs);
         (
             Self {
                 context,
@@ -54,9 +55,11 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
                 mailbox,
                 abci_executor,
                 block_results_handler,
+                mempool_rx,
             },
             Supervisor::new(config.polynomial, config.participants, config.share),
             Mailbox::new(sender),
+            mempool_tx,
         )
     }
 
@@ -108,7 +111,7 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
                                     if current <= parent.timestamp {
                                         current = parent.timestamp + 1;
                                     }
-                                    let block = Block::new(parent.digest(), parent.height+1, current, pull_txs().await); // todo
+                                    let block = Block::new(parent.digest(), parent.height+1, current, self.pull_txs().await);
                                     let digest = block.digest();
                                     {
                                         let mut built = built.lock().unwrap();

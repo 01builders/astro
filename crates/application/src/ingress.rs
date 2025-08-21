@@ -46,8 +46,8 @@ impl Mailbox {
 }
 
 impl Automaton for Mailbox {
-    type Digest = Digest;
     type Context = Context<Self::Digest>;
+    type Digest = Digest;
 
     async fn genesis(&mut self) -> Self::Digest {
         let (response, receiver) = oneshot::channel();
