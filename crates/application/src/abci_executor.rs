@@ -1,8 +1,7 @@
 use crate::block_result::BlockResult;
 use astro_proto_types::cometbft::abci::v1beta3::{
-    RequestFinalizeBlock, ResponseFinalizeBlock, abci_client::AbciClient,
+    RequestFinalizeBlock, ResponseFinalizeBlock, RequestInitChain, abci_client::AbciClient,
 };
-use astro_proto_types::cometbft::abci::v2::InitChainRequest;
 use astro_types::Block;
 use tonic::transport::Channel;
 
@@ -49,7 +48,7 @@ impl AbciExecutor {
         self.convert_cometbft_response_to_digest(resp)
     }
 
-    pub(super) fn convert_block_to_finalize_request(&self, block: &Block) -> RequestFinalizeBlock {
+    pub(super) fn convert_block_to_finalize_request(&self, _block: &Block) -> RequestFinalizeBlock {
         todo!()
     }
 
@@ -57,8 +56,14 @@ impl AbciExecutor {
         &self,
         resp_block: ResponseFinalizeBlock,
     ) -> Result<BlockResult, AbciExecutorError> {
+        // Convert prost::Bytes to [u8; 32]
+        let app_hash: [u8; 32] = resp_block.app_hash.as_ref().try_into()
+            .map_err(|_| AbciExecutorError::Status(tonic::Status::invalid_argument(
+                "app_hash must be exactly 32 bytes"
+            )))?;
+        
         Ok(BlockResult {
-            app_hash: resp_block.app_hash.iter().as_slice().try_into()?,
+            app_hash,
             events: resp_block.events,
             tx_results: resp_block.tx_results,
         })
@@ -68,20 +73,24 @@ impl AbciExecutor {
         &mut self,
         genesis: Vec<u8>,
     ) -> Result<[u8; 32], AbciExecutorError> {
+        let request = InitChainRequest {
+            time: None,
+            chain_id: "".to_string(),
+            consensus_params: None,
+            validators: vec![],
+            app_state_bytes: genesis.into(),
+            initial_height: 0,
+        };
         let resp = self.client
-            .init_chain(
-                InitChainRequest {
-                    time: None,
-                    chain_id: "".to_string(),
-                    consensus_params: None,
-                    validators: vec![],
-                    app_state_bytes: genesis.into(),
-                    initial_height: 0,
-                }
-                .into(),
-            )
+            .init_chain(request)
             .await?.into_inner();
         
-        Ok(resp.app_hash.iter().as_ref().try_into()?)
+        // Convert prost::Bytes to [u8; 32]
+        let app_hash: [u8; 32] = resp.app_hash.as_ref().try_into()
+            .map_err(|_| AbciExecutorError::Status(tonic::Status::invalid_argument(
+                "app_hash must be exactly 32 bytes"
+            )))?;
+        
+        Ok(app_hash)
     }
 }
