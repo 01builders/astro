@@ -1,19 +1,22 @@
 use super::{
-    ingress::{Mailbox, Message},
     Config,
+    ingress::{Mailbox, Message},
 };
+use crate::abci_executor::AbciExecutor;
+use crate::block_result::BlockResult;
 use crate::genesis::get_genesis_tx;
-use crate::mempool::pull_txs;
+use crate::propose::pull_txs;
 use crate::{supervisor::Supervisor, utils::OneshotClosedFut};
 use astro_types::Block;
 use commonware_consensus::{marshal, threshold_simplex::types::View};
 use commonware_cryptography::{
-    bls12381::primitives::variant::MinSig, Committable, Digestible, Hasher, Sha256,
+    Committable, Digestible, Hasher, Sha256, bls12381::primitives::variant::MinSig,
 };
 use commonware_macros::select;
 use commonware_runtime::{Clock, Handle, Metrics, Spawner};
 use commonware_utils::SystemTimeExt;
-use futures::StreamExt;
+use futures::channel::mpsc::UnboundedSender;
+use futures::{SinkExt, StreamExt};
 use futures::{channel::mpsc, future::try_join};
 use futures::{future, future::Either};
 use rand::Rng;
@@ -31,17 +34,26 @@ pub struct Actor<R: Rng + Spawner + Metrics + Clock> {
     context: R,
     hasher: Sha256,
     mailbox: mpsc::Receiver<Message>,
+    abci_executor: AbciExecutor,
+    block_results_handler: UnboundedSender<BlockResult>,
 }
 
 impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
     /// Create a new application actor.
-    pub fn new(context: R, config: Config) -> (Self, Supervisor, Mailbox) {
+    pub fn new(
+        context: R,
+        config: Config,
+        abci_executor: AbciExecutor,
+        block_results_handler: UnboundedSender<BlockResult>,
+    ) -> (Self, Supervisor, Mailbox) {
         let (sender, mailbox) = mpsc::channel(config.mailbox_size);
         (
             Self {
                 context,
                 hasher: Sha256::new(),
                 mailbox,
+                abci_executor,
+                block_results_handler,
             },
             Supervisor::new(config.polynomial, config.participants, config.share),
             Mailbox::new(sender),
@@ -194,6 +206,11 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
                     // In an application that maintains state, you would compute the state transition function here.
                     //
                     // After an unclean shutdown, it is possible that the application may be asked to process a block it has already seen (which it can simply ignore).
+                    let resp = self.abci_executor.finalize_block(&block).await.unwrap();
+
+                    // send to block result handler
+                    self.block_results_handler.send(resp).await.unwrap();
+
                     info!(
                         height = block.height,
                         digest = ?block.commitment(),

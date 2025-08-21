@@ -29,3 +29,4 @@ tracing = "0.1.41"
 prost = "0.13.3"
 tonic = "0.12.3"
 prost-types = { version = "0.13.3", features = ["std"] }
+thiserror = "2.0.16"
