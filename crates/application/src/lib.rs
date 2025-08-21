@@ -6,10 +6,10 @@ mod ingress;
 mod abci_executor;
 mod actor;
 mod genesis;
-mod mempool;
+mod propose;
 mod utils;
 mod supervisor;
-
+mod block_result;
 
 /// Configuration for the application.
 pub struct Config {
@@ -25,4 +25,10 @@ pub struct Config {
     /// Number of messages from consensus to hold in our backlog
     /// before blocking.
     pub mailbox_size: usize,
+
+    /// The underlying ABCI client endpoint.
+    pub abci_app_endpoint: String,
+    
+    /// Maximum number of Tx in the mempool
+    pub max_pending_txs: usize,
 }
