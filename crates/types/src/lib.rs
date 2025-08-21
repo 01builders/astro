@@ -5,6 +5,7 @@ mod consensus;
 pub use block::*;
 use commonware_cryptography::bls12381::primitives::variant::{MinPk, Variant};
 pub use genesis::*;
+pub use consensus::*;
 
 use commonware_consensus::threshold_simplex::types::Activity as CActivity;
 

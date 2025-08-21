@@ -1,3 +1,7 @@
+use commonware_cryptography::bls12381::primitives::group;
+use commonware_cryptography::bls12381::primitives::poly::Poly;
+use astro_types::{Evaluation, PublicKey};
+
 mod ingress;
 mod abci_executor;
 mod actor;
@@ -6,17 +10,19 @@ mod mempool;
 mod utils;
 mod supervisor;
 
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Configuration for the application.
+pub struct Config {
+    /// Participants active in consensus.
+    pub participants: Vec<PublicKey>,
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+    /// The unevaluated group polynomial associated with the current dealing.
+    pub polynomial: Poly<Evaluation>,
+
+    /// The share of the secret.
+    pub share: group::Share,
+
+    /// Number of messages from consensus to hold in our backlog
+    /// before blocking.
+    pub mailbox_size: usize,
 }
