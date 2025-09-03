@@ -162,7 +162,7 @@ mod tests {
             result.is_err(),
             "Conversion should fail with invalid pubkey"
         );
-        
+
         // Verify the error message contains our custom formatting
         let error = result.unwrap_err().to_string();
         assert!(
@@ -179,18 +179,19 @@ mod tests {
 
         let result = AbciExecutor::astro_validator_into_comet_validator(wrong_length_validator);
         assert!(result.is_err(), "Conversion should fail with wrong length");
-        
+
         // Test that the function can handle the call structure correctly
         // (testing the integration with get_raw_pubkey method)
         let test_validator = Validator {
-            public_key: "0000000000000000000000000000000000000000000000000000000000000000".to_string(),
+            public_key: "0000000000000000000000000000000000000000000000000000000000000000"
+                .to_string(),
             ip_address: "127.0.0.1:8080".to_string(),
         };
 
         // This may or may not succeed depending on whether all-zero is valid for ed25519,
         // but the important thing is that the method doesn't panic and properly uses get_raw_pubkey
         let result = AbciExecutor::astro_validator_into_comet_validator(test_validator);
-        
+
         // If it succeeds, verify the structure
         if let Ok(comet_validator) = result {
             assert_eq!(comet_validator.voting_power, 100);
