@@ -155,9 +155,28 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
             .fetch_genesis_file()
             .await
             .expect("Genesis fetching failed");
+
+        // TODO: These values should come from proper genesis config
+        let genesis_time_unix_ms = self.context.current().epoch_millis(); // Use current time for now
+        let initial_height = 0u64; // Genesis starts at height 0
+        let chain_id = "astro-localnet".to_string(); // TODO: Get from config
+
+        // TODO: Create proper validator from config or genesis file
+        let placeholder_validator = astro_types::Validator {
+            public_key: "0000000000000000000000000000000000000000000000000000000000000001"
+                .to_string(), // TODO: Use actual validator
+            ip_address: "127.0.0.1:26656".to_string(), // TODO: Use actual IP
+        };
+
         let _app_hash = self
             .abci_executor
-            .do_genesis(genesis)
+            .do_genesis(
+                genesis_time_unix_ms,
+                initial_height,
+                chain_id,
+                genesis,
+                placeholder_validator,
+            )
             .await
             .expect("Abci executor genesis failed");
 
