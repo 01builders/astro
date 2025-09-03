@@ -1,7 +1,7 @@
-use astro_types::{leader_index, Evaluation, Identity, Signature};
+use astro_types::leader_index;
 use commonware_codec::Encode;
 use commonware_consensus::{
-    threshold_simplex::types::View, Supervisor as Su, ThresholdSupervisor as TSu,
+    Supervisor as Su, ThresholdSupervisor as TSu, threshold_simplex::types::View,
 };
 use commonware_cryptography::{
     bls12381::{
@@ -9,13 +9,18 @@ use commonware_cryptography::{
         primitives::{
             group,
             poly::{self, Poly},
-            variant::MinSig,
+            variant::{MinSig, Variant},
         },
     },
     ed25519,
 };
 use commonware_resolver::p2p;
 use std::collections::HashMap;
+
+// Use MinSig variant types for this supervisor
+type Identity = <MinSig as Variant>::Public;
+type Evaluation = Identity;
+type Signature = <MinSig as Variant>::Signature;
 
 /// Implementation of [commonware_consensus::Supervisor].
 #[derive(Clone)]
@@ -41,23 +46,20 @@ impl Supervisor {
         for (index, validator) in participants.iter().enumerate() {
             participants_map.insert(validator.clone(), index as u32);
         }
+
+        // Get the public identity from the polynomial
         let identity = *poly::public::<MinSig>(&polynomial);
-        let polynomial = evaluate_all::<MinSig>(&polynomial, participants.len() as u32);
 
-        // TODO: broken
+        // Evaluate the polynomial for all participants
+        let evaluated_polynomial = evaluate_all::<MinSig>(&polynomial, participants.len() as u32);
 
-        todo!("gives type mismatch")
-        // Return supervisor
-        /*
         Self {
             identity,
-            polynomial,
+            polynomial: evaluated_polynomial,
             participants,
             participants_map,
             share,
         }
-        
-         */
     }
 }
 
