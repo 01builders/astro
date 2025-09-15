@@ -19,6 +19,8 @@ commonware-macros = "0.0.58"
 commonware-resolver = "0.0.58"
 commonware-runtime = "0.0.58"
 commonware-utils = "0.0.58"
+commonware-broadcast = "0.0.58"
+commonware-p2p = "0.0.58"
 
 bytes = "1.10.1"
 futures = "0.3.31"
@@ -30,3 +32,6 @@ prost = "0.13.3"
 tonic = "0.12.3"
 prost-types = { version = "0.13.3", features = ["std"] }
 thiserror = "2.0.16"
+governor = "0.6.3"
+tokio = { version = "1.0", features = ["full"] }
+rand_core = "0.6"

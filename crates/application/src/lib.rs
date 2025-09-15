@@ -10,6 +10,9 @@ mod propose;
 mod utils;
 mod supervisor;
 mod block_result;
+mod engine;
+
+pub use engine::{Engine, Config as EngineConfig};
 
 /// Configuration for the application.
 pub struct Config {
