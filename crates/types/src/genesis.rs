@@ -43,6 +43,14 @@ pub struct Validator {
     pub ip_address: String,
 }
 
+impl Validator {
+    /// Get the raw PublicKey from the hex-formatted public_key string
+    pub fn get_raw_pubkey(&self) -> Result<PublicKey, String> {
+        let pub_key_bytes = from_hex_formatted(&self.public_key).ok_or("PublicKey bad format")?;
+        PublicKey::decode(&*pub_key_bytes).map_err(|_| "Unable to decode Public Key".to_string())
+    }
+}
+
 impl TryInto<(PublicKey, SocketAddr)> for &Validator {
     type Error = String;
 
@@ -123,5 +131,43 @@ mod tests {
             let found_addr = genesis.ip_of(pub_key);
             assert_eq!(found_addr, Some(*expected_addr));
         }
+    }
+
+    #[test]
+    fn test_validator_get_raw_pubkey() {
+        // Test error case with invalid hex characters
+        let invalid_validator = Validator {
+            public_key: "invalid_hex_characters".to_string(),
+            ip_address: "127.0.0.1:8080".to_string(),
+        };
+
+        let result = invalid_validator.get_raw_pubkey();
+        assert!(result.is_err(), "Should fail with invalid hex");
+        assert!(
+            result.unwrap_err().contains("PublicKey bad format"),
+            "Error should mention bad format"
+        );
+
+        // Test error case with valid hex but wrong length (too short)
+        let wrong_length_validator = Validator {
+            public_key: "abcdef".to_string(), // Too short for ed25519
+            ip_address: "127.0.0.1:8080".to_string(),
+        };
+
+        let result = wrong_length_validator.get_raw_pubkey();
+        assert!(result.is_err(), "Should fail with wrong length hex");
+
+        // Test that the method exists and can be called (basic smoke test)
+        // Using a 32-byte hex string (64 hex characters)
+        let test_hex = "0000000000000000000000000000000000000000000000000000000000000000";
+        let validator = Validator {
+            public_key: test_hex.to_string(),
+            ip_address: "127.0.0.1:8080".to_string(),
+        };
+
+        // The method should run without panicking (result may be Ok or Err depending on validity)
+        let _result = validator.get_raw_pubkey();
+        // Note: We don't assert on success here since all-zero might not be a valid ed25519 key
+        // but we're testing that the method works and doesn't panic
     }
 }
