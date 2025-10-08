@@ -40,7 +40,7 @@ pub struct Mailbox {
 }
 
 impl Mailbox {
-    pub(super) fn new(sender: mpsc::Sender<Message>) -> Self {
+    pub fn new(sender: mpsc::Sender<Message>) -> Self {
         Self { sender }
     }
 }

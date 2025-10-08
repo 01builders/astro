@@ -17,6 +17,8 @@ commonware-cryptography.workspace = true
 commonware-macros.workspace = true
 commonware-utils.workspace = true
 commonware-runtime.workspace = true
+commonware-broadcast.workspace = true
+commonware-p2p.workspace = true
 
 prost-types.workspace = true
 futures.workspace = true
@@ -24,3 +26,6 @@ rand.workspace = true
 tracing.workspace = true
 tonic.workspace = true
 thiserror.workspace = true
+governor.workspace = true
+tokio.workspace = true
+rand_core.workspace = true
