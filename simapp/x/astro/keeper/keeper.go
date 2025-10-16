@@ -1,19 +1,19 @@
 package keeper
 
 import (
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/core/store"
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 // Keeper provides state management for the x/astro module.
 type Keeper struct {
 	cdc          codec.Codec
-	storeService storetypes.KVStoreService
+	storeService store.KVStoreService
 	authority    string
 }
 
 // NewKeeper returns a new Keeper instance.
-func NewKeeper(cdc codec.Codec, storeService storetypes.KVStoreService, authority string) Keeper {
+func NewKeeper(cdc codec.Codec, storeService store.KVStoreService, authority string) Keeper {
 	return Keeper{
 		cdc:          cdc,
 		storeService: storeService,

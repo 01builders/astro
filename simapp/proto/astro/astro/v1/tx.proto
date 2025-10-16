@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package astro.astro.v1;
+
+option go_package = "github.com/binary-builders/astro/simapp/x/astro/types;types";
+
+// Msg defines the Msg service for the astro module.
+service Msg {
+  // Example demonstrates a simple message RPC.
+  rpc Example(MsgExample) returns (MsgExampleResponse);
+}
+
+// MsgExample is a placeholder example message.
+message MsgExample {
+  string creator = 1;
+  string payload = 2;
+}
+
+// MsgExampleResponse is returned after handling MsgExample.
+message MsgExampleResponse {}
