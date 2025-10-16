@@ -1,0 +1,8 @@
+version: v1
+
+# Treat the 'proto' folder as the module root.
+# This ensures imports like "astro/..." resolve correctly
+# for files located at "proto/astro/...".
+directories:
+  - proto
+
