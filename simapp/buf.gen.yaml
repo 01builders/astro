@@ -1,20 +1,12 @@
 version: v1
 
 plugins:
-  # Use local protoc plugins inside the Cosmos proto-builder image
-  # so we don't rely on remote Buf plugins (works offline/in CI with the image).
+  # protoc-gen-go via Buf remote plugin (handles module path mapping)
+  - plugin: buf.build/protocolbuffers/go
+    out: .
 
-  # protoc-gen-go
-  - name: go
+  # protoc-gen-go-grpc via Buf remote plugin
+  - plugin: buf.build/grpc/go
     out: .
     opt:
-      # Map go_package import paths to paths relative to this module.
-      - module=github.com/binary-builders/astro/simapp
-    # Intentionally omit paths=source_relative so files land under go_package path.
-
-  # protoc-gen-go-grpc
-  - name: go-grpc
-    out: .
-    opt:
-      - module=github.com/binary-builders/astro/simapp
       - require_unimplemented_servers=false

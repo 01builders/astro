@@ -25,13 +25,21 @@ proto-image-local:
 	$(DOCKER) build -f Dockerfile.proto -t $(PROTO_IMAGE_LOCAL) .
 
 proto-format:
+	mkdir -p .cache
 	$(DOCKER) run --rm \
 	  -v $(PWD):$(WORKDIR) -w $(WORKDIR) \
+	  -e HOME=$(WORKDIR) \
+	  -e XDG_CACHE_HOME=$(WORKDIR)/.cache \
+	  -e BUF_CACHE_DIR=$(WORKDIR)/.cache \
 	  $(PROTO_IMAGE) buf format -w
 
 proto-lint:
+	mkdir -p .cache
 	$(DOCKER) run --rm \
 	  -v $(PWD):$(WORKDIR) -w $(WORKDIR) \
+	  -e HOME=$(WORKDIR) \
+	  -e XDG_CACHE_HOME=$(WORKDIR)/.cache \
+	  -e BUF_CACHE_DIR=$(WORKDIR)/.cache \
 	  $(PROTO_IMAGE) buf lint
 
 proto-gen:

@@ -3,8 +3,10 @@ package module
 import (
 	"encoding/json"
 
+	"cosmossdk.io/core/appmodule"
 	"github.com/binary-builders/astro/simapp/x/astro/keeper"
 	"github.com/binary-builders/astro/simapp/x/astro/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -16,6 +18,11 @@ import (
 
 // AppModuleBasic implements the sdk AppModuleBasic interface for x/astro.
 type AppModuleBasic struct{}
+
+func (b AppModuleBasic) RegisterGRPCGatewayRoutes(context client.Context, mux *runtime.ServeMux) {
+	// TODO implement me
+	panic("implement me")
+}
 
 var _ sdkmodule.AppModuleBasic = AppModuleBasic{}
 
@@ -44,7 +51,11 @@ type AppModule struct {
 	keeper keeper.Keeper
 }
 
-var _ sdkmodule.AppModule = AppModule{}
+func (am AppModule) IsOnePerModuleType() {}
+
+func (am AppModule) IsAppModule() {}
+
+var _ appmodule.AppModule = AppModule{}
 
 func NewAppModule(_ codec.Codec, k keeper.Keeper) AppModule {
 	return AppModule{keeper: k}
