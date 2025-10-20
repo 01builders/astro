@@ -1,0 +1,12 @@
+version: v1
+
+plugins:
+  # protoc-gen-go via Buf remote plugin (handles module path mapping)
+  - plugin: buf.build/protocolbuffers/go
+    out: .
+
+  # protoc-gen-go-grpc via Buf remote plugin
+  - plugin: buf.build/grpc/go
+    out: .
+    opt:
+      - require_unimplemented_servers=false

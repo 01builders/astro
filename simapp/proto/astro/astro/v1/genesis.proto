@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package astro.astro.v1;
+
+option go_package = "github.com/binary-builders/astro/simapp/x/astro/types;types";
+
+import "astro/astro/v1/params.proto";
+
+// GenesisState defines the astro module's genesis state.
+message GenesisState {
+  Params params = 1;
+}

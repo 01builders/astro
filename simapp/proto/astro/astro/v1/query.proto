@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package astro.astro.v1;
+
+option go_package = "github.com/binary-builders/astro/simapp/x/astro/types;types";
+
+import "astro/astro/v1/params.proto";
+
+// Query defines the gRPC query service for the astro module.
+service Query {
+  // Params returns the current module parameters.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse);
+}
+
+message QueryParamsRequest {}
+
+message QueryParamsResponse {
+  Params params = 1;
+}
