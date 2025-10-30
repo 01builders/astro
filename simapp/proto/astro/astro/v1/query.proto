@@ -12,8 +12,8 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse);
 }
 
+// QueryParamsRequest is the request type for the Query.Params gRPC method.
 message QueryParamsRequest {}
 
-message QueryParamsResponse {
-  Params params = 1;
-}
+// QueryParamsResponse is the response type for the Query.Params gRPC method.
+message QueryParamsResponse { Params params = 1; }
