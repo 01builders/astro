@@ -779,3 +779,8 @@ func BlockedAddresses() map[string]bool {
 
 	return modAccAddrs
 }
+
+func (app *SimApp) ExportAppStateAndValidators(forZeroHeight bool, jailAllowedAddrs, modulesToExport []string) (servertypes.ExportedApp, error) {
+	// TODO implement me
+	panic("this function is not used")
+}
