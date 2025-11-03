@@ -4,17 +4,16 @@ import (
 	"errors"
 	"fmt"
 
-	collcodec "cosmossdk.io/codec"
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/binary-builders/astro/simapp/x/astro/types"
-	sdkcodec "github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Keeper provides state management for the x/astro module.
 type Keeper struct {
-	cdc          sdkcodec.Codec
+	cdc          codec.Codec
 	storeService store.KVStoreService
 	authority    string
 
@@ -26,15 +25,15 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new Keeper instance.
-func NewKeeper(cdc sdkcodec.Codec, storeService store.KVStoreService, authority string) Keeper {
+func NewKeeper(cdc codec.Codec, storeService store.KVStoreService, authority string) Keeper {
 	sb := collections.NewSchemaBuilder(storeService)
 
 	k := Keeper{
 		cdc:          cdc,
 		storeService: storeService,
 		authority:    authority,
-		Params:       collections.NewItem(sb, types.ParamsKey, "params", collcodec.CollValue[types.Params](cdc)),
-		Validators:   collections.NewMap(sb, types.ValidatorsPrefix, "validators", collections.StringKey, collcodec.CollValue[types.Validator](cdc)),
+		Params:       collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
+		Validators:   collections.NewMap(sb, types.ValidatorsPrefix, "validators", collections.StringKey, codec.CollValue[types.Validator](cdc)),
 	}
 
 	schema, err := sb.Build()
