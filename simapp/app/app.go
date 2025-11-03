@@ -90,9 +90,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/protocolpool"
 	protocolpoolkeeper "github.com/cosmos/cosmos-sdk/x/protocolpool/keeper"
 	protocolpooltypes "github.com/cosmos/cosmos-sdk/x/protocolpool/types"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 )
 
 const appName = "SimApp"
@@ -133,7 +130,6 @@ type SimApp struct {
 	AccountKeeper         authkeeper.AccountKeeper
 	BankKeeper            bankkeeper.BaseKeeper
 	AstroKeeper           astro.Keeper
-	SlashingKeeper        slashingkeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
@@ -240,7 +236,6 @@ func NewSimApp(
 		authtypes.StoreKey,
 		banktypes.StoreKey,
 		stakingtypes.StoreKey,
-		slashingtypes.StoreKey,
 		consensusparamtypes.StoreKey,
 		upgradetypes.StoreKey,
 		feegrant.StoreKey,
@@ -332,14 +327,6 @@ func NewSimApp(
 		authtypes.NewModuleAddress(astrotypes.ModuleName).String(),
 	)
 
-	app.SlashingKeeper = slashingkeeper.NewKeeper(
-		appCodec,
-		legacyAmino,
-		runtime.NewKVStoreService(keys[slashingtypes.StoreKey]),
-		app.AstroKeeper,
-		authtypes.NewModuleAddress(astrotypes.ModuleName).String(),
-	)
-
 	app.FeeGrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[feegrant.StoreKey]),
@@ -406,18 +393,6 @@ func NewSimApp(
 		app.BankKeeper,
 	)
 
-	// create evidence keeper with router
-	evidenceKeeper := evidencekeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(keys[evidencetypes.StoreKey]),
-		app.AstroKeeper,
-		app.SlashingKeeper,
-		app.AccountKeeper.AddressCodec(),
-		runtime.ProvideCometInfoService(),
-	)
-	// If evidence needs to be handled for the app, set routes in router here and seal
-	app.EvidenceKeeper = *evidenceKeeper
-
 	app.EpochsKeeper = epochskeeper.NewKeeper(
 		runtime.NewKVStoreService(keys[epochstypes.StoreKey]),
 		appCodec,
@@ -442,7 +417,6 @@ func NewSimApp(
 		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, nil),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.AstroKeeper, nil, app.interfaceRegistry),
 		upgrade.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
@@ -478,7 +452,6 @@ func NewSimApp(
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.ModuleManager.SetOrderBeginBlockers(
 		protocolpooltypes.ModuleName,
-		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		genutiltypes.ModuleName,
@@ -486,6 +459,7 @@ func NewSimApp(
 		epochstypes.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
+		astrotypes.ModuleName,
 		stakingtypes.ModuleName,
 		genutiltypes.ModuleName,
 		feegrant.ModuleName,
@@ -501,7 +475,6 @@ func NewSimApp(
 		banktypes.ModuleName,
 		astrotypes.ModuleName,
 		stakingtypes.ModuleName,
-		slashingtypes.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		authz.ModuleName,
@@ -523,7 +496,6 @@ func NewSimApp(
 		protocolpooltypes.ModuleName, // Must be exported before bank
 		banktypes.ModuleName,
 		stakingtypes.ModuleName,
-		slashingtypes.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		authz.ModuleName,
