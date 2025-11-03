@@ -40,7 +40,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) (*types.GenesisState, error) {
 	}
 
 	gs := types.DefaultGenesis()
-	gs.Params = params
+	gs.Params = &params
 	gs.Validators = validators
 	return gs, nil
 }
