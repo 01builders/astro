@@ -9,7 +9,7 @@ import (
 func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 	// set params if provided
 	if gs.Params != nil {
-		if err := k.SetParams(ctx, gs.Params); err != nil {
+		if err := k.SetParams(ctx, *gs.Params); err != nil {
 			return err
 		}
 	}
@@ -19,7 +19,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 		if v == nil {
 			continue
 		}
-		if err := k.SetValidator(ctx, v); err != nil {
+		if err := k.SetValidator(ctx, *v); err != nil {
 			return err
 		}
 	}
@@ -41,6 +41,15 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) (*types.GenesisState, error) {
 
 	gs := types.DefaultGenesis()
 	gs.Params = &params
-	gs.Validators = validators
+	if len(validators) > 0 {
+		vals := make([]*types.Validator, len(validators))
+		for i := range validators {
+			// take address of slice element to avoid pointer-to-loop-var bug
+			vals[i] = &validators[i]
+		}
+		gs.Validators = vals
+	} else {
+		gs.Validators = nil
+	}
 	return gs, nil
 }
