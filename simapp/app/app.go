@@ -420,7 +420,6 @@ func NewSimApp(
 		circuit.NewAppModule(appCodec, app.CircuitKeeper),
 		epochs.NewAppModule(app.EpochsKeeper),
 		protocolpool.NewAppModule(app.ProtocolPoolKeeper, app.AccountKeeper, app.BankKeeper),
-		astro.NewAppModule(xxx),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
