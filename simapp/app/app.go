@@ -10,7 +10,6 @@ import (
 	astrotypes "github.com/binary-builders/astro/simapp/x/astro/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	dbm "github.com/cosmos/cosmos-db"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cast"
 
@@ -98,8 +97,6 @@ var (
 	// module account permissions
 	maccPerms = map[string][]string{
 		authtypes.FeeCollectorName:                  nil,
-		stakingtypes.BondedPoolName:                 {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName:              {authtypes.Burner, authtypes.Staking},
 		nft.ModuleName:                              nil,
 		protocolpooltypes.ModuleName:                nil,
 		protocolpooltypes.ProtocolPoolEscrowAccount: nil}
@@ -231,7 +228,6 @@ func NewSimApp(
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey,
 		banktypes.StoreKey,
-		stakingtypes.StoreKey,
 		consensusparamtypes.StoreKey,
 		upgradetypes.StoreKey,
 		feegrant.StoreKey,
@@ -302,18 +298,6 @@ func NewSimApp(
 	}
 	app.txConfig = txConfig
 
-	/*
-		app.StakingKeeper = stakingkeeper.NewKeeper(
-			appCodec,
-			runtime.NewKVStoreService(keys[stakingtypes.StoreKey]),
-			app.AccountKeeper,
-			app.BankKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-			authcodec.NewBech32Codec(sdk.Bech32PrefixValAddr),
-			authcodec.NewBech32Codec(sdk.Bech32PrefixConsAddr),
-		)
-	*/
-
 	app.ProtocolPoolKeeper = protocolpoolkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[protocolpooltypes.StoreKey]),
@@ -327,15 +311,6 @@ func NewSimApp(
 		runtime.NewKVStoreService(keys[feegrant.StoreKey]),
 		app.AccountKeeper,
 	)
-	// TODO:
-	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	// app.StakingKeeper.SetHooks(
-	//	stakingtypes.NewMultiStakingHooks(
-	//		app.DistrKeeper.Hooks(),
-	//		app.SlashingKeeper.Hooks(),
-	//	),
-	// )
 
 	app.CircuitKeeper = circuitkeeper.NewKeeper(
 		appCodec,
@@ -445,14 +420,12 @@ func NewSimApp(
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.ModuleManager.SetOrderBeginBlockers(
 		protocolpooltypes.ModuleName,
-		stakingtypes.ModuleName,
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		epochstypes.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
 		astrotypes.ModuleName,
-		stakingtypes.ModuleName,
 		genutiltypes.ModuleName,
 		feegrant.ModuleName,
 		group.ModuleName,
@@ -466,7 +439,6 @@ func NewSimApp(
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		astrotypes.ModuleName,
-		stakingtypes.ModuleName,
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
@@ -486,7 +458,6 @@ func NewSimApp(
 		authtypes.ModuleName,
 		protocolpooltypes.ModuleName, // Must be exported before bank
 		banktypes.ModuleName,
-		stakingtypes.ModuleName,
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
