@@ -7,6 +7,8 @@ import (
 	"maps"
 
 	"github.com/binary-builders/astro/simapp/x/astro"
+	astrokeeper "github.com/binary-builders/astro/simapp/x/astro/keeper"
+	astromodule "github.com/binary-builders/astro/simapp/x/astro/module"
 	astrotypes "github.com/binary-builders/astro/simapp/x/astro/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	dbm "github.com/cosmos/cosmos-db"
@@ -136,6 +138,9 @@ type SimApp struct {
 	EpochsKeeper       epochskeeper.Keeper
 	ProtocolPoolKeeper protocolpoolkeeper.Keeper
 
+	// astro module keeper (state for x/astro)
+	AstroStateKeeper astrokeeper.Keeper
+
 	// the module manager
 	ModuleManager      *module.Manager
 	BasicModuleManager module.BasicManager
@@ -237,6 +242,7 @@ func NewSimApp(
 		group.StoreKey,
 		epochstypes.StoreKey,
 		protocolpooltypes.StoreKey,
+		astrotypes.StoreKey,
 	)
 
 	// register streaming services
@@ -281,6 +287,13 @@ func NewSimApp(
 		BlockedAddresses(),
 		authtypes.NewModuleAddress(astrotypes.ModuleName).String(),
 		logger,
+	)
+
+	// initialize astro module keeper
+	app.AstroStateKeeper = astrokeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[astrotypes.StoreKey]),
+		authtypes.NewModuleAddress(astrotypes.ModuleName).String(),
 	)
 
 	// optional: enable sign mode textual by overwriting the default tx config (after setting the bank keeper)
@@ -383,6 +396,7 @@ func NewSimApp(
 			app.AccountKeeper, app.AstroKeeper, app,
 			txConfig,
 		),
+		astromodule.NewAppModule(appCodec, app.AstroStateKeeper),
 		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, nil),
 		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, nil),
