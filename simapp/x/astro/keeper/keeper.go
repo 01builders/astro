@@ -1,12 +1,15 @@
 package keeper
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
 	"github.com/binary-builders/astro/simapp/x/astro/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -64,6 +67,28 @@ func (k Keeper) SetValidator(ctx sdk.Context, v types.Validator) error {
 	if v.Moniker == "" {
 		return fmt.Errorf("validator moniker cannot be empty")
 	}
+	if len(v.Moniker) > types.MaxMonikerLength {
+		return fmt.Errorf("validator moniker exceeds maximum length (%d)", types.MaxMonikerLength)
+	}
+	if err := types.ValidateIdentity(v.Identity); err != nil {
+		return fmt.Errorf("invalid validator identity: %w", err)
+	}
+	if len(v.Identity) > 0 {
+		dup := false
+		err := k.Validators.Walk(ctx.Context(), nil, func(m string, existing types.Validator) (bool, error) {
+			if m != v.Moniker && len(existing.Identity) > 0 && string(existing.Identity) == string(v.Identity) {
+				dup = true
+				return true, nil
+			}
+			return false, nil
+		})
+		if err != nil {
+			return err
+		}
+		if dup {
+			return fmt.Errorf("duplicate validator identity")
+		}
+	}
 	return k.Validators.Set(ctx.Context(), v.Moniker, v)
 }
 
@@ -90,4 +115,29 @@ func (k Keeper) GetAllValidators(ctx sdk.Context) ([]types.Validator, error) {
 		return nil, err
 	}
 	return vals, nil
+}
+
+// ApplyAndReturnValidatorSetUpdates implements the minimal interface expected by genutil.
+// No updates are applied here; Astro manages consensus identity externally.
+func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx context.Context) ([]abci.ValidatorUpdate, error) {
+	// Note: We don't modify Tendermint's validator set here; we merely surface
+	// the current number of Astro validators as updates with constant voting power
+	// the private key is represented as Ed25519
+	// genutil interface expectations without applying staking logic.
+	updates := make([]abci.ValidatorUpdate, 0)
+	err := k.Validators.Walk(ctx, nil, func(_ string, val types.Validator) (bool, error) {
+		updates = append(updates, abci.ValidatorUpdate{
+			PubKey: crypto.PublicKey{
+				Sum: &crypto.PublicKey_Ed25519{
+					Ed25519: val.Identity,
+				},
+			},
+			Power: 1,
+		})
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return updates, nil
 }

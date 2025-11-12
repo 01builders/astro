@@ -20,8 +20,7 @@ import (
 type AppModuleBasic struct{}
 
 func (b AppModuleBasic) RegisterGRPCGatewayRoutes(context client.Context, mux *runtime.ServeMux) {
-	// TODO implement me
-	panic("implement me")
+	// No gRPC-Gateway routes for this module yet.
 }
 
 var _ sdkmodule.AppModuleBasic = AppModuleBasic{}

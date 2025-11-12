@@ -5,4 +5,5 @@ package types
 func DefaultParams() Params { return Params{} }
 
 // Validate performs basic validation on Params.
+// At the moment, Params has no fields; this is a no-op by design.
 func (p *Params) Validate() error { return nil }

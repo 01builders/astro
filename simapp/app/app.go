@@ -6,7 +6,6 @@ import (
 	"io"
 	"maps"
 
-	"github.com/binary-builders/astro/simapp/x/astro"
 	astrokeeper "github.com/binary-builders/astro/simapp/x/astro/keeper"
 	astromodule "github.com/binary-builders/astro/simapp/x/astro/module"
 	astrotypes "github.com/binary-builders/astro/simapp/x/astro/types"
@@ -125,7 +124,7 @@ type SimApp struct {
 	// essential keepers
 	AccountKeeper         authkeeper.AccountKeeper
 	BankKeeper            bankkeeper.BaseKeeper
-	AstroKeeper           astro.Keeper
+	AstroKeeper           astrokeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	CircuitKeeper         circuitkeeper.Keeper
@@ -137,9 +136,6 @@ type SimApp struct {
 	NFTKeeper          nftkeeper.Keeper
 	EpochsKeeper       epochskeeper.Keeper
 	ProtocolPoolKeeper protocolpoolkeeper.Keeper
-
-	// astro module keeper (state for x/astro)
-	AstroStateKeeper astrokeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -290,7 +286,7 @@ func NewSimApp(
 	)
 
 	// initialize astro module keeper
-	app.AstroStateKeeper = astrokeeper.NewKeeper(
+	app.AstroKeeper = astrokeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[astrotypes.StoreKey]),
 		authtypes.NewModuleAddress(astrotypes.ModuleName).String(),
@@ -396,7 +392,7 @@ func NewSimApp(
 			app.AccountKeeper, app.AstroKeeper, app,
 			txConfig,
 		),
-		astromodule.NewAppModule(appCodec, app.AstroStateKeeper),
+		astromodule.NewAppModule(appCodec, app.AstroKeeper),
 		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, nil),
 		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, nil),
