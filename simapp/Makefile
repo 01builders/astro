@@ -7,7 +7,8 @@ DOCKER ?= docker
 WORKDIR ?= /workspace
 
 # Use the published Cosmos SDK proto-builder image (has protoc, buf, plugins)
-PROTO_IMAGE ?= ghcr.io/cosmos/proto-builder:0.14.0
+# Match SDK's protoVer where possible
+PROTO_IMAGE ?= ghcr.io/cosmos/proto-builder:0.17.1
 
 # Local image tag if you want to build the wrapper Dockerfile in this repo
 PROTO_IMAGE_LOCAL ?= astro-proto-builder:local
@@ -43,14 +44,15 @@ proto-lint:
 	  $(PROTO_IMAGE) buf lint
 
 proto-gen:
-	mkdir -p .cache
-	$(DOCKER) run --rm -u $(UID_GID) \
+	@echo "Generating Protobuf files (gocosmos)"
+	$(DOCKER) run --rm \
 	  -v $(PWD):$(WORKDIR) -w $(WORKDIR) \
 	  -e HOME=$(WORKDIR) \
 	  -e XDG_CACHE_HOME=$(WORKDIR)/.cache \
 	  -e BUF_CACHE_DIR=$(WORKDIR)/.cache \
-	  $(PROTO_IMAGE) buf generate --template buf.gen.yaml
+	  $(PROTO_IMAGE) sh ./scripts/protocgen.sh
 
 # Remove any previously generated code under gen/ or other temp dirs if you use them
 proto-clean:
 	rm -rf gen 2>/dev/null || true
+	rm -rf github.com 2>/dev/null || true

@@ -1,5 +1,7 @@
 package types
 
+import "cosmossdk.io/collections"
+
 const (
 	// ModuleName defines the module name
 	ModuleName = "astro"
@@ -12,4 +14,13 @@ const (
 
 	// MemStoreKey is the mem store key
 	MemStoreKey = "mem_" + ModuleName
+)
+
+// Collections prefixes for state storage
+var (
+    // ParamsKey is the singleton key for module params
+    ParamsKey = collections.NewPrefix("AstroParams")
+
+    // ValidatorsPrefix stores validators by their moniker
+    ValidatorsPrefix = collections.NewPrefix("AstroValidators")
 )

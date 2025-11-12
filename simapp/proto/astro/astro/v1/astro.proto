@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package astro.astro.v1;
+
+option go_package = "github.com/binary-builders/astro/simapp/x/astro/types;types";
+
+// Validator mirrors the Threshold Simplex validator type.
+//
+// Threshold Simplex (as wired here) is not stake-weighted; leader selection
+// is uniform over participants using a seed-based modulo. As such, the
+// consensus-facing validator type only needs the BLS MinSig public identity.
+//
+// identity
+// - What it is: the network-wide BLS12-381 MinSig public key (a.k.a. the
+//   polynomial’s public identity) derived from DKG. In code this is obtained
+//   via `poly::public::<MinSig>(&polynomial)` and exposed as
+//   `<MinSig as Variant>::Public`.
+// - What it’s for: verifying aggregate threshold signatures that appear in
+//   Notarization/Finalization proofs; all validators verify against the same
+//   identity value.
+// - What it is not: it is not the validator’s Ed25519 key used for P2P/app.
+//   Those keys are tracked separately (e.g., participants list in the
+//   Supervisor) and are used for networking, not threshold verification.
+message Validator {
+  // Human-readable unique name for the validator within the Astro system.
+  // Used as the primary key in state for lookups and management.
+  string moniker = 1;
+
+  // BLS MinSig public key bytes for the validator identity.
+  bytes identity = 2;
+}

@@ -5,7 +5,4 @@ package astro.astro.v1;
 option go_package = "github.com/binary-builders/astro/simapp/x/astro/types;types";
 
 // Params defines the parameters for the astro module.
-message Params {
-  // example is a placeholder param to demonstrate wiring.
-  string example = 1;
-}
+message Params {}

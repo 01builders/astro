@@ -5,8 +5,17 @@ package astro.astro.v1;
 option go_package = "github.com/binary-builders/astro/simapp/x/astro/types;types";
 
 import "astro/astro/v1/params.proto";
+import "astro/astro/v1/astro.proto";
 
 // GenesisState defines the astro module's genesis state.
 message GenesisState {
   Params params = 1;
+  // Network-wide BLS MinSig public identity used to verify
+  // threshold signatures (Notarization/Finalization).
+  // This is derived from the DKG polynomial:
+  // poly::public::<MinSig>(&polynomial).
+  bytes identity = 2;
+  // Per-validator threshold public data aligned with Threshold Simplex.
+  // Each entry mirrors the simplex-side validator representation.
+  repeated Validator validators = 3;
 }

@@ -7,15 +7,49 @@ import (
 
 // InitGenesis initializes the module state from genesis.
 func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
-	// initialize module state here as needed
-	_ = ctx
-	_ = gs
+	// set params if provided
+	if gs.Params != nil {
+		if err := k.SetParams(ctx, *gs.Params); err != nil {
+			return err
+		}
+	}
+
+	// load validators
+	for _, v := range gs.Validators {
+		if v == nil {
+			continue
+		}
+		if err := k.SetValidator(ctx, *v); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 // ExportGenesis exports the current module state to genesis.
 func (k Keeper) ExportGenesis(ctx sdk.Context) (*types.GenesisState, error) {
-	_ = ctx
-	// populate from state when implemented
-	return types.DefaultGenesis(), nil
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		// if not found, keep default params in export
+		params = types.DefaultParams()
+	}
+
+	validators, err := k.GetAllValidators(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	gs := types.DefaultGenesis()
+	gs.Params = &params
+	if len(validators) > 0 {
+		vals := make([]*types.Validator, len(validators))
+		for i := range validators {
+			// take address of slice element to avoid pointer-to-loop-var bug
+			vals[i] = &validators[i]
+		}
+		gs.Validators = vals
+	} else {
+		gs.Validators = nil
+	}
+	return gs, nil
 }

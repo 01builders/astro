@@ -11,6 +11,10 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cast"
 
+	astrokeeper "github.com/binary-builders/astro/simapp/x/astro/keeper"
+	astromodule "github.com/binary-builders/astro/simapp/x/astro/module"
+	astrotypes "github.com/binary-builders/astro/simapp/x/astro/types"
+
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/client/v2/autocli"
@@ -164,6 +168,9 @@ type SimApp struct {
 	EpochsKeeper       epochskeeper.Keeper
 	ProtocolPoolKeeper protocolpoolkeeper.Keeper
 
+	// astro module keeper
+	AstroKeeper astrokeeper.Keeper
+
 	// the module manager
 	ModuleManager      *module.Manager
 	BasicModuleManager module.BasicManager
@@ -271,6 +278,7 @@ func NewSimApp(
 		group.StoreKey,
 		epochstypes.StoreKey,
 		protocolpooltypes.StoreKey,
+		astrotypes.StoreKey,
 	)
 
 	// register streaming services
@@ -315,6 +323,13 @@ func NewSimApp(
 		BlockedAddresses(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		logger,
+	)
+
+	// astro keeper (module-local state)
+	app.AstroKeeper = astrokeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[astrotypes.StoreKey]),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// optional: enable sign mode textual by overwriting the default tx config (after setting the bank keeper)
@@ -510,6 +525,7 @@ func NewSimApp(
 			app.AccountKeeper, app.StakingKeeper, app,
 			txConfig,
 		),
+		astromodule.NewAppModule(appCodec, app.AstroKeeper),
 		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, nil),
 		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, nil),
@@ -597,6 +613,7 @@ func NewSimApp(
 		circuittypes.ModuleName,
 		epochstypes.ModuleName,
 		protocolpooltypes.ModuleName,
+		astrotypes.ModuleName,
 	}
 
 	exportModuleOrder := []string{
@@ -619,6 +636,7 @@ func NewSimApp(
 		vestingtypes.ModuleName,
 		circuittypes.ModuleName,
 		epochstypes.ModuleName,
+		astrotypes.ModuleName,
 	}
 
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)

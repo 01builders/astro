@@ -1,250 +1,77 @@
 // @generated
-pub mod cometbft {
+pub mod tendermint {
+    // @@protoc_insertion_point(attribute:tendermint.abci)
     pub mod abci {
-        // @@protoc_insertion_point(attribute:cometbft.abci.v1)
-        pub mod v1 {
-            include!("cometbft.abci.v1.rs");
-            // @@protoc_insertion_point(cometbft.abci.v1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.abci.v1beta1)
-        pub mod v1beta1 {
-            include!("cometbft.abci.v1beta1.rs");
-            // @@protoc_insertion_point(cometbft.abci.v1beta1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.abci.v1beta2)
-        pub mod v1beta2 {
-            include!("cometbft.abci.v1beta2.rs");
-            // @@protoc_insertion_point(cometbft.abci.v1beta2)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.abci.v1beta3)
-        pub mod v1beta3 {
-            include!("cometbft.abci.v1beta3.rs");
-            // @@protoc_insertion_point(cometbft.abci.v1beta3)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.abci.v2)
-        pub mod v2 {
-            include!("cometbft.abci.v2.rs");
-            // @@protoc_insertion_point(cometbft.abci.v2)
-        }
+        include!("tendermint.abci.rs");
+        // @@protoc_insertion_point(tendermint.abci)
     }
+    // @@protoc_insertion_point(attribute:tendermint.blocksync)
     pub mod blocksync {
-        // @@protoc_insertion_point(attribute:cometbft.blocksync.v1)
-        pub mod v1 {
-            include!("cometbft.blocksync.v1.rs");
-            // @@protoc_insertion_point(cometbft.blocksync.v1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.blocksync.v1beta1)
-        pub mod v1beta1 {
-            include!("cometbft.blocksync.v1beta1.rs");
-            // @@protoc_insertion_point(cometbft.blocksync.v1beta1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.blocksync.v2)
-        pub mod v2 {
-            include!("cometbft.blocksync.v2.rs");
-            // @@protoc_insertion_point(cometbft.blocksync.v2)
-        }
+        include!("tendermint.blocksync.rs");
+        // @@protoc_insertion_point(tendermint.blocksync)
     }
+    // @@protoc_insertion_point(attribute:tendermint.consensus)
     pub mod consensus {
-        // @@protoc_insertion_point(attribute:cometbft.consensus.v1)
-        pub mod v1 {
-            include!("cometbft.consensus.v1.rs");
-            // @@protoc_insertion_point(cometbft.consensus.v1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.consensus.v1beta1)
-        pub mod v1beta1 {
-            include!("cometbft.consensus.v1beta1.rs");
-            // @@protoc_insertion_point(cometbft.consensus.v1beta1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.consensus.v2)
-        pub mod v2 {
-            include!("cometbft.consensus.v2.rs");
-            // @@protoc_insertion_point(cometbft.consensus.v2)
-        }
+        include!("tendermint.consensus.rs");
+        // @@protoc_insertion_point(tendermint.consensus)
     }
+    // @@protoc_insertion_point(attribute:tendermint.crypto)
     pub mod crypto {
-        // @@protoc_insertion_point(attribute:cometbft.crypto.v1)
-        pub mod v1 {
-            include!("cometbft.crypto.v1.rs");
-            // @@protoc_insertion_point(cometbft.crypto.v1)
-        }
+        include!("tendermint.crypto.rs");
+        // @@protoc_insertion_point(tendermint.crypto)
     }
     pub mod libs {
+        // @@protoc_insertion_point(attribute:tendermint.libs.bits)
         pub mod bits {
-            // @@protoc_insertion_point(attribute:cometbft.libs.bits.v1)
-            pub mod v1 {
-                include!("cometbft.libs.bits.v1.rs");
-                // @@protoc_insertion_point(cometbft.libs.bits.v1)
-            }
+            include!("tendermint.libs.bits.rs");
+            // @@protoc_insertion_point(tendermint.libs.bits)
         }
     }
+    // @@protoc_insertion_point(attribute:tendermint.mempool)
     pub mod mempool {
-        // @@protoc_insertion_point(attribute:cometbft.mempool.v1)
-        pub mod v1 {
-            include!("cometbft.mempool.v1.rs");
-            // @@protoc_insertion_point(cometbft.mempool.v1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.mempool.v2)
-        pub mod v2 {
-            include!("cometbft.mempool.v2.rs");
-            // @@protoc_insertion_point(cometbft.mempool.v2)
-        }
+        include!("tendermint.mempool.rs");
+        // @@protoc_insertion_point(tendermint.mempool)
     }
+    // @@protoc_insertion_point(attribute:tendermint.p2p)
     pub mod p2p {
-        // @@protoc_insertion_point(attribute:cometbft.p2p.v1)
-        pub mod v1 {
-            include!("cometbft.p2p.v1.rs");
-            // @@protoc_insertion_point(cometbft.p2p.v1)
-        }
+        include!("tendermint.p2p.rs");
+        // @@protoc_insertion_point(tendermint.p2p)
     }
+    // @@protoc_insertion_point(attribute:tendermint.privval)
     pub mod privval {
-        // @@protoc_insertion_point(attribute:cometbft.privval.v1)
-        pub mod v1 {
-            include!("cometbft.privval.v1.rs");
-            // @@protoc_insertion_point(cometbft.privval.v1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.privval.v1beta1)
-        pub mod v1beta1 {
-            include!("cometbft.privval.v1beta1.rs");
-            // @@protoc_insertion_point(cometbft.privval.v1beta1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.privval.v1beta2)
-        pub mod v1beta2 {
-            include!("cometbft.privval.v1beta2.rs");
-            // @@protoc_insertion_point(cometbft.privval.v1beta2)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.privval.v2)
-        pub mod v2 {
-            include!("cometbft.privval.v2.rs");
-            // @@protoc_insertion_point(cometbft.privval.v2)
-        }
+        include!("tendermint.privval.rs");
+        // @@protoc_insertion_point(tendermint.privval)
     }
     pub mod rpc {
+        // @@protoc_insertion_point(attribute:tendermint.rpc.grpc)
         pub mod grpc {
-            // @@protoc_insertion_point(attribute:cometbft.rpc.grpc.v1beta1)
-            pub mod v1beta1 {
-                include!("cometbft.rpc.grpc.v1beta1.rs");
-                // @@protoc_insertion_point(cometbft.rpc.grpc.v1beta1)
-            }
-            // @@protoc_insertion_point(attribute:cometbft.rpc.grpc.v1beta2)
-            pub mod v1beta2 {
-                include!("cometbft.rpc.grpc.v1beta2.rs");
-                // @@protoc_insertion_point(cometbft.rpc.grpc.v1beta2)
-            }
-            // @@protoc_insertion_point(attribute:cometbft.rpc.grpc.v1beta3)
-            pub mod v1beta3 {
-                include!("cometbft.rpc.grpc.v1beta3.rs");
-                // @@protoc_insertion_point(cometbft.rpc.grpc.v1beta3)
-            }
+            include!("tendermint.rpc.grpc.rs");
+            // @@protoc_insertion_point(tendermint.rpc.grpc)
         }
     }
-    pub mod services {
-        pub mod block {
-            // @@protoc_insertion_point(attribute:cometbft.services.block.v1)
-            pub mod v1 {
-                include!("cometbft.services.block.v1.rs");
-                // @@protoc_insertion_point(cometbft.services.block.v1)
-            }
-            // @@protoc_insertion_point(attribute:cometbft.services.block.v2)
-            pub mod v2 {
-                include!("cometbft.services.block.v2.rs");
-                // @@protoc_insertion_point(cometbft.services.block.v2)
-            }
-        }
-        pub mod block_results {
-            // @@protoc_insertion_point(attribute:cometbft.services.block_results.v1)
-            pub mod v1 {
-                include!("cometbft.services.block_results.v1.rs");
-                // @@protoc_insertion_point(cometbft.services.block_results.v1)
-            }
-            // @@protoc_insertion_point(attribute:cometbft.services.block_results.v2)
-            pub mod v2 {
-                include!("cometbft.services.block_results.v2.rs");
-                // @@protoc_insertion_point(cometbft.services.block_results.v2)
-            }
-        }
-        pub mod pruning {
-            // @@protoc_insertion_point(attribute:cometbft.services.pruning.v1)
-            pub mod v1 {
-                include!("cometbft.services.pruning.v1.rs");
-                // @@protoc_insertion_point(cometbft.services.pruning.v1)
-            }
-        }
-        pub mod version {
-            // @@protoc_insertion_point(attribute:cometbft.services.version.v1)
-            pub mod v1 {
-                include!("cometbft.services.version.v1.rs");
-                // @@protoc_insertion_point(cometbft.services.version.v1)
-            }
-        }
-    }
+    // @@protoc_insertion_point(attribute:tendermint.state)
     pub mod state {
-        // @@protoc_insertion_point(attribute:cometbft.state.v1)
-        pub mod v1 {
-            include!("cometbft.state.v1.rs");
-            // @@protoc_insertion_point(cometbft.state.v1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.state.v1beta1)
-        pub mod v1beta1 {
-            include!("cometbft.state.v1beta1.rs");
-            // @@protoc_insertion_point(cometbft.state.v1beta1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.state.v1beta2)
-        pub mod v1beta2 {
-            include!("cometbft.state.v1beta2.rs");
-            // @@protoc_insertion_point(cometbft.state.v1beta2)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.state.v1beta3)
-        pub mod v1beta3 {
-            include!("cometbft.state.v1beta3.rs");
-            // @@protoc_insertion_point(cometbft.state.v1beta3)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.state.v2)
-        pub mod v2 {
-            include!("cometbft.state.v2.rs");
-            // @@protoc_insertion_point(cometbft.state.v2)
-        }
+        include!("tendermint.state.rs");
+        // @@protoc_insertion_point(tendermint.state)
     }
+    // @@protoc_insertion_point(attribute:tendermint.statesync)
     pub mod statesync {
-        // @@protoc_insertion_point(attribute:cometbft.statesync.v1)
-        pub mod v1 {
-            include!("cometbft.statesync.v1.rs");
-            // @@protoc_insertion_point(cometbft.statesync.v1)
-        }
+        include!("tendermint.statesync.rs");
+        // @@protoc_insertion_point(tendermint.statesync)
     }
+    // @@protoc_insertion_point(attribute:tendermint.store)
     pub mod store {
-        // @@protoc_insertion_point(attribute:cometbft.store.v1)
-        pub mod v1 {
-            include!("cometbft.store.v1.rs");
-            // @@protoc_insertion_point(cometbft.store.v1)
-        }
+        include!("tendermint.store.rs");
+        // @@protoc_insertion_point(tendermint.store)
     }
+    // @@protoc_insertion_point(attribute:tendermint.types)
     pub mod types {
-        // @@protoc_insertion_point(attribute:cometbft.types.v1)
-        pub mod v1 {
-            include!("cometbft.types.v1.rs");
-            // @@protoc_insertion_point(cometbft.types.v1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.types.v1beta1)
-        pub mod v1beta1 {
-            include!("cometbft.types.v1beta1.rs");
-            // @@protoc_insertion_point(cometbft.types.v1beta1)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.types.v1beta2)
-        pub mod v1beta2 {
-            include!("cometbft.types.v1beta2.rs");
-            // @@protoc_insertion_point(cometbft.types.v1beta2)
-        }
-        // @@protoc_insertion_point(attribute:cometbft.types.v2)
-        pub mod v2 {
-            include!("cometbft.types.v2.rs");
-            // @@protoc_insertion_point(cometbft.types.v2)
-        }
+        include!("tendermint.types.rs");
+        // @@protoc_insertion_point(tendermint.types)
     }
+    // @@protoc_insertion_point(attribute:tendermint.version)
     pub mod version {
-        // @@protoc_insertion_point(attribute:cometbft.version.v1)
-        pub mod v1 {
-            include!("cometbft.version.v1.rs");
-            // @@protoc_insertion_point(cometbft.version.v1)
-        }
+        include!("tendermint.version.rs");
+        // @@protoc_insertion_point(tendermint.version)
     }
 }
