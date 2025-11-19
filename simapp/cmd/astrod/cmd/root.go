@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"cosmossdk.io/log"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	"github.com/binary-builders/astro/simapp"
 	dbm "github.com/cosmos/cosmos-db"
@@ -15,8 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	"github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
@@ -26,7 +25,7 @@ import (
 // encodingConfig mirrors the subset of fields we need from the Cosmos SDK
 // helper but keeps the implementation local to this repository.
 type encodingConfig struct {
-	InterfaceRegistry types.InterfaceRegistry
+	InterfaceRegistry codectypes.InterfaceRegistry
 	Codec             codec.Codec
 	TxConfig          client.TxConfig
 	Amino             *codec.LegacyAmino
