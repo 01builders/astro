@@ -1,11 +1,9 @@
 use crate::abci::genesis::{GenesisError, GenesisHandler};
+#[path = "finalize.rs"]
+mod finalize;
 use crate::types::{Block as AstroBlock, BlockResult, Validator as AstroValidator};
 use cometbft_proto::google::protobuf::Timestamp;
-use cometbft_proto::tendermint::{
-    abci::{RequestFinalizeBlock, ResponseFinalizeBlock, abci_client::AbciClient},
-    crypto,
-    types::Validator as CometValidator,
-};
+use cometbft_proto::tendermint::{abci::abci_client::AbciClient, crypto, types::Validator as CometValidator};
 use commonware_codec::Encode;
 use tonic::transport::Channel;
 
@@ -69,37 +67,7 @@ impl AbciExecutor {
         &mut self,
         block: &AstroBlock,
     ) -> Result<BlockResult, AbciExecutorError> {
-        let request_finalize_block = self.convert_block_to_finalize_request(block);
-
-        let resp: ResponseFinalizeBlock = self
-            .client
-            .finalize_block(request_finalize_block)
-            .await?
-            .into_inner();
-
-        self.convert_cometbft_response_to_digest(resp)
-    }
-
-    fn convert_block_to_finalize_request(&self, _block: &AstroBlock) -> RequestFinalizeBlock {
-        todo!()
-    }
-
-    fn convert_cometbft_response_to_digest(
-        &self,
-        resp_block: ResponseFinalizeBlock,
-    ) -> Result<BlockResult, AbciExecutorError> {
-        // Convert prost::Bytes to [u8; 32]
-        let app_hash: [u8; 32] = resp_block.app_hash.as_slice().try_into().map_err(|_| {
-            AbciExecutorError::Status(tonic::Status::invalid_argument(
-                "app_hash must be exactly 32 bytes",
-            ))
-        })?;
-
-        Ok(BlockResult {
-            app_hash,
-            events: resp_block.events,
-            tx_results: resp_block.tx_results,
-        })
+        finalize::finalize_block(block, &mut self.client).await
     }
 
     fn astro_validator_into_comet_validator(
