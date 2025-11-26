@@ -176,7 +176,11 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
         };
 
         // Pull transactions before spawning the task
-        let txs = self.abci_executor.pull_txs().await.unwrap();
+        let txs = self
+            .abci_executor
+            .pull_txs(&mut self.mempool_rx)
+            .await
+            .expect("mempool channel was dropped");
 
         // Wait for the parent block to be available or the request to be cancelled in a separate task (to
         // continue processing other messages)

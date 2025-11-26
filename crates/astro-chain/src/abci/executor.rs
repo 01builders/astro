@@ -1,24 +1,24 @@
-use crate::abci::genesis::GenesisHandler;
+use crate::abci::genesis::{GenesisError, GenesisHandler};
 use crate::types::{Block as AstroBlock, BlockResult, Validator as AstroValidator};
 use cometbft_proto::google::protobuf::Timestamp;
 use cometbft_proto::tendermint::{
-    abci::{
-        RequestFinalizeBlock, RequestInitChain, ResponseFinalizeBlock, abci_client::AbciClient,
-    },
+    abci::{RequestFinalizeBlock, ResponseFinalizeBlock, abci_client::AbciClient},
     crypto,
-    types::{ConsensusParams, Validator as CometValidator},
+    types::Validator as CometValidator,
 };
 use commonware_codec::Encode;
 use tonic::transport::Channel;
 
-// TODO: abci executor error impl from GenesisError
-// TODO pull tx returns error and is async
 #[derive(Debug, thiserror::Error)]
 pub enum AbciExecutorError {
     #[error("tonic: {0}")]
     Tonic(#[from] tonic::transport::Error),
     #[error("status: {0}")]
     Status(#[from] tonic::Status),
+    #[error("genesis: {0}")]
+    Genesis(#[from] GenesisError),
+    #[error("mempool: {0}")]
+    Mempool(String),
 }
 
 pub struct AbciExecutor {
@@ -61,8 +61,7 @@ impl AbciExecutor {
         let (app_hash, validators) = self
             .genesis_handler
             .do_genesis(genesis_digest, &mut self.client)
-            .await
-            .map_err(|e| AbciExecutorError::Status(tonic::Status::internal(e.to_string())))?;
+            .await?;
         Ok((app_hash, validators))
     }
 
@@ -125,11 +124,18 @@ impl AbciExecutor {
 
     /// Drain pending mempool transactions from the provided receiver.
     /// TODO: enforce size/limit policy.
-    pub fn pull_txs(
+    pub async fn pull_txs(
         &self,
-        _mempool_rx: &mut futures::channel::mpsc::Receiver<Vec<u8>>,
-    ) -> Vec<Vec<u8>> {
-        Vec::new()
+        mempool_rx: &mut futures::channel::mpsc::Receiver<Vec<u8>>,
+    ) -> Result<Vec<Vec<u8>>, AbciExecutorError> {
+        let mut txs = Vec::new();
+        while let Some(v) = mempool_rx
+            .try_next()
+            .map_err(|e| AbciExecutorError::Mempool(e.to_string()))?
+        {
+            txs.push(v);
+        }
+        Ok(txs)
     }
 }
 
