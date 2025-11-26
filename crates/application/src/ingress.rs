@@ -1,4 +1,4 @@
-use astro_types::Block;
+use astro_chain::Block;
 use commonware_consensus::{
     threshold_simplex::types::{Context, View},
     Automaton, Relay, Reporter,

@@ -70,7 +70,7 @@ checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 name = "astro-application"
 version = "0.1.0"
 dependencies = [
- "astro-types",
+ "astro-chain",
  "cometbft-proto",
  "commonware-broadcast",
  "commonware-codec",
@@ -93,16 +93,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "astro-types"
+name = "astro-chain"
 version = "0.1.0"
 dependencies = [
  "bytes",
+ "cometbft-proto",
  "commonware-codec",
  "commonware-consensus",
  "commonware-cryptography",
  "commonware-utils",
+ "prost-types",
  "serde",
+ "thiserror 2.0.16",
  "toml",
+ "tonic",
 ]
 
 [[package]]

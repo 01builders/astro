@@ -1,4 +1,4 @@
-use astro_types::leader_index;
+use astro_chain::leader_index;
 use commonware_codec::Encode;
 use commonware_consensus::{
     Supervisor as Su, ThresholdSupervisor as TSu, threshold_simplex::types::View,

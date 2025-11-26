@@ -7,7 +7,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-astro-types.workspace = true
+astro-chain.workspace = true
 cometbft-proto.workspace = true
 
 commonware-codec.workspace = true

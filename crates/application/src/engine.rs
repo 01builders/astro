@@ -1,5 +1,5 @@
 use crate::{supervisor::Supervisor};
-use astro_types::{Activity, Block, Evaluation, NAMESPACE};
+use astro_chain::{Activity, Block, Evaluation, NAMESPACE};
 use commonware_broadcast::buffered;
 use commonware_consensus::{
     marshal,

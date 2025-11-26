@@ -1,10 +1,10 @@
-use crate::block_result::BlockResult;
-use astro_types::{Block as AstroBlock, Validator as AstroValidator};
-use cometbft_proto::tendermint::abci::abci_client::AbciClient;
-use cometbft_proto::tendermint::abci::{
-    RequestFinalizeBlock, RequestInitChain, ResponseFinalizeBlock,
+use crate::types::{Block as AstroBlock, BlockResult, Validator as AstroValidator};
+use cometbft_proto::google::protobuf::Timestamp;
+use cometbft_proto::tendermint::{
+    abci::{abci_client::AbciClient, RequestFinalizeBlock, RequestInitChain, ResponseFinalizeBlock},
+    crypto,
+    types::{ConsensusParams, Validator as CometValidator},
 };
-use cometbft_proto::tendermint::types::{ConsensusParams, Validator as CometValidator};
 use commonware_codec::Encode;
 use tonic::transport::Channel;
 
@@ -23,30 +23,27 @@ pub struct AbciExecutor {
 
 impl AbciExecutor {
     /// Convert Unix timestamp in milliseconds to prost_types::Timestamp
-    fn millis_to_timestamp(millis: u64) -> prost_types::Timestamp {
+    fn millis_to_timestamp(millis: u64) -> Timestamp {
         let seconds = millis / 1000;
         let remaining_millis = millis % 1000;
         let nanos = remaining_millis * 1_000_000; // Convert remaining milliseconds to nanoseconds
 
-        prost_types::Timestamp {
-            seconds: seconds as i64,
-            nanos: nanos as i32,
-        }
+        Timestamp { seconds: seconds as i64, nanos: nanos as i32 }
     }
 
     pub async fn connect(endpoint: &str) -> Result<Self, tonic::transport::Error> {
-        let client = ABCIClient::connect(endpoint.to_string()).await?;
+        let client = AbciClient::connect(endpoint.to_string()).await?;
         Ok(Self::new(client, endpoint.to_string()))
     }
 
-    pub(super) fn new(client: ABCIClient<Channel>, original_endpoint: String) -> Self {
+    pub fn new(client: AbciClient<Channel>, original_endpoint: String) -> Self {
         Self {
             client,
             original_endpoint,
         }
     }
 
-    pub(super) async fn finalize_block(
+    pub async fn finalize_block(
         &mut self,
         block: &AstroBlock,
     ) -> Result<BlockResult, AbciExecutorError> {
@@ -61,19 +58,19 @@ impl AbciExecutor {
         self.convert_cometbft_response_to_digest(resp)
     }
 
-    pub(super) fn convert_block_to_finalize_request(
+    pub fn convert_block_to_finalize_request(
         &self,
         _block: &AstroBlock,
     ) -> RequestFinalizeBlock {
         todo!()
     }
 
-    pub(super) fn convert_cometbft_response_to_digest(
+    pub fn convert_cometbft_response_to_digest(
         &self,
         resp_block: ResponseFinalizeBlock,
     ) -> Result<BlockResult, AbciExecutorError> {
         // Convert prost::Bytes to [u8; 32]
-        let app_hash: [u8; 32] = resp_block.app_hash.as_ref().try_into().map_err(|_| {
+        let app_hash: [u8; 32] = resp_block.app_hash.as_slice().try_into().map_err(|_| {
             AbciExecutorError::Status(tonic::Status::invalid_argument(
                 "app_hash must be exactly 32 bytes",
             ))
@@ -86,13 +83,12 @@ impl AbciExecutor {
         })
     }
 
-    pub(crate) async fn do_genesis(
+    pub async fn do_genesis(
         &mut self,
         genesis_time_unix_ms: u64,
         initial_height: u64,
         chain_id: String,
         genesis: Vec<u8>,
-        single_validator: AstroValidator,
     ) -> Result<[u8; 32], AbciExecutorError> {
         let request = RequestInitChain {
             time: Some(Self::millis_to_timestamp(genesis_time_unix_ms)),
@@ -103,8 +99,6 @@ impl AbciExecutor {
                 validator: None,
                 version: None,
                 abci: None,
-                synchrony: None,
-                feature: None,
             }),
             validators: vec![],
             app_state_bytes: genesis.into(),
@@ -113,7 +107,7 @@ impl AbciExecutor {
         let resp = self.client.init_chain(request).await?.into_inner();
 
         // Convert prost::Bytes to [u8; 32]
-        let app_hash: [u8; 32] = resp.app_hash.as_ref().try_into().map_err(|_| {
+        let app_hash: [u8; 32] = resp.app_hash.as_slice().try_into().map_err(|_| {
             AbciExecutorError::Status(tonic::Status::invalid_argument(
                 "app_hash must be exactly 32 bytes",
             ))
@@ -134,11 +128,11 @@ impl AbciExecutor {
 
         Ok(CometValidator {
             address: Default::default(),
-            pub_key: None,
+            pub_key: Some(crypto::PublicKey {
+                sum: Some(crypto::public_key::Sum::Ed25519(raw_pubkey.encode().into())),
+            }),
             voting_power: 100, // for now since the network is one validator this is the default vp
             proposer_priority: 1,
-            pub_key_bytes: raw_pubkey.encode().into(),
-            pub_key_type: "astro-validator-key".to_string(), // todo in cosmos sdk
         })
     }
 }
@@ -146,12 +140,11 @@ impl AbciExecutor {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use astro_types::Validator;
 
     #[test]
     fn test_astro_validator_into_comet_validator() {
         // Test error case with invalid hex - this is the main functionality we're testing
-        let invalid_validator = Validator {
+        let invalid_validator = AstroValidator {
             public_key: "invalid_hex".to_string(),
             ip_address: "127.0.0.1:8080".to_string(),
         };
@@ -171,7 +164,7 @@ mod tests {
         );
 
         // Test error case with wrong length hex
-        let wrong_length_validator = Validator {
+        let wrong_length_validator = AstroValidator {
             public_key: "abcd".to_string(), // Too short
             ip_address: "127.0.0.1:8080".to_string(),
         };
@@ -181,7 +174,7 @@ mod tests {
 
         // Test that the function can handle the call structure correctly
         // (testing the integration with get_raw_pubkey method)
-        let test_validator = Validator {
+        let test_validator = AstroValidator {
             public_key: "0000000000000000000000000000000000000000000000000000000000000000"
                 .to_string(),
             ip_address: "127.0.0.1:8080".to_string(),
@@ -195,7 +188,6 @@ mod tests {
         if let Ok(comet_validator) = result {
             assert_eq!(comet_validator.voting_power, 100);
             assert_eq!(comet_validator.proposer_priority, 1);
-            assert_eq!(comet_validator.pub_key_type, "astro-validator-key");
         }
         // If it fails, that's also acceptable - we're testing the integration, not valid key generation
     }

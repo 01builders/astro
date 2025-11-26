@@ -2,10 +2,8 @@ use super::{
     Config,
     ingress::{Mailbox, Message},
 };
-use crate::abci_executor::AbciExecutor;
-use crate::block_result::BlockResult;
 use crate::{supervisor::Supervisor, utils::OneshotClosedFut};
-use astro_types::{Block, Digest};
+use astro_chain::{AbciExecutor, Block, BlockResult, Digest};
 use commonware_consensus::{marshal, threshold_simplex::types::View};
 use commonware_cryptography::{
     Committable, Digestible, Hasher, Sha256, bls12381::primitives::variant::MinSig,
@@ -162,11 +160,6 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
         let chain_id = "astro-localnet".to_string(); // TODO: Get from config
 
         // TODO: Create proper validator from config or genesis file
-        let placeholder_validator = astro_types::Validator {
-            public_key: "0000000000000000000000000000000000000000000000000000000000000001"
-                .to_string(), // TODO: Use actual validator
-            ip_address: "127.0.0.1:26656".to_string(), // TODO: Use actual IP
-        };
 
         let _app_hash = self
             .abci_executor
@@ -175,7 +168,6 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
                 initial_height,
                 chain_id,
                 genesis,
-                placeholder_validator,
             )
             .await
             .expect("Abci executor genesis failed");

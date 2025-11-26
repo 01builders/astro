@@ -1,5 +1,5 @@
 [package]
-name = "astro-types"
+name = "astro-chain"
 version = "0.1.0"
 edition = "2024"
 license.workspace = true
@@ -14,3 +14,7 @@ commonware-utils.workspace = true
 bytes.workspace = true
 toml.workspace = true
 serde.workspace = true
+cometbft-proto.workspace = true
+tonic.workspace = true
+prost-types.workspace = true
+thiserror.workspace = true

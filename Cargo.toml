@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/types", "crates/cometbft-proto", "crates/application"]
+members = ["crates/astro-chain", "crates/cometbft-proto", "crates/application"]
 
 [workspace.package]
 license = "Apache-2.0"
@@ -9,7 +9,7 @@ rust-version = "1.86.0"
 
 
 [workspace.dependencies]
-astro-types = { path = "crates/types"}
+astro-chain = { path = "crates/astro-chain"}
 cometbft-proto = { path = "crates/cometbft-proto" }
 
 commonware-consensus = "0.0.58"
