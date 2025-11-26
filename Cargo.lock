@@ -113,6 +113,7 @@ dependencies = [
  "commonware-cryptography",
  "commonware-utils",
  "futures",
+ "hex",
  "prost-types",
  "serde",
  "serde_json",

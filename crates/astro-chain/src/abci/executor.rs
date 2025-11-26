@@ -43,7 +43,7 @@ impl AbciExecutor {
         }
     }
 
-    pub async fn finalize_block(
+    async fn finalize_block(
         &mut self,
         block: &AstroBlock,
     ) -> Result<BlockResult, AbciExecutorError> {
@@ -58,14 +58,14 @@ impl AbciExecutor {
         self.convert_cometbft_response_to_digest(resp)
     }
 
-    pub fn convert_block_to_finalize_request(
+    fn convert_block_to_finalize_request(
         &self,
         _block: &AstroBlock,
     ) -> RequestFinalizeBlock {
         todo!()
     }
 
-    pub fn convert_cometbft_response_to_digest(
+    fn convert_cometbft_response_to_digest(
         &self,
         resp_block: ResponseFinalizeBlock,
     ) -> Result<BlockResult, AbciExecutorError> {
@@ -105,7 +105,7 @@ impl AbciExecutor {
 
     /// Drain pending mempool transactions from the provided receiver.
     /// TODO: enforce size/limit policy.
-    pub fn pull_txs(
+    fn pull_txs(
         mempool_rx: &mut futures::channel::mpsc::Receiver<Vec<u8>>,
     ) -> Vec<Vec<u8>> {
         let mut txs = Vec::new();
