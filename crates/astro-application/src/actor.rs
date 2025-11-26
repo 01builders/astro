@@ -147,33 +147,13 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
         response: futures::channel::oneshot::Sender<Digest>,
         genesis_digest: Digest,
     ) {
-        // Use the digest of the genesis message as the initial
-        // payload.
-        let genesis = self
-            .fetch_genesis_file()
-            .await
-            .expect("Genesis fetching failed");
-
-        // TODO: These values should come from proper genesis config
-        let genesis_time_unix_ms = self.context.current().epoch_millis(); // Use current time for now
-        let initial_height = 0u64; // Genesis starts at height 0
-        let chain_id = "astro-localnet".to_string(); // TODO: Get from config
-
-        // TODO: Create proper validator from config or genesis file
-
-        let _app_hash = self
+        let app_hash = self
             .abci_executor
-            .do_genesis(
-                genesis_time_unix_ms,
-                initial_height,
-                chain_id,
-                genesis,
-            )
+            .do_genesis(genesis_digest)
             .await
             .expect("Abci executor genesis failed");
 
-        // TODO: replace genesis with app_hash
-        let _ = response.send(genesis_digest);
+        response.send(app_hash.into()).unwrap();
     }
 
     /// Handle Propose message.
@@ -195,7 +175,7 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
         };
 
         // Pull transactions before spawning the task
-        let txs = self.pull_txs().await;
+        let txs = astro_chain::AbciExecutor::pull_txs(&mut self.mempool_rx);
 
         // Wait for the parent block to be available or the request to be cancelled in a separate task (to
         // continue processing other messages)

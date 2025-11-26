@@ -23,7 +23,7 @@ CommonWare Consensus (Rust)
 ## Component roles
 
 - CommonWare consensus: builds and decides Astro blocks; expects deterministic app responses and validator metadata.
-- `AbciExecutor` (Rust, `crates/application/src/abci_executor.rs`): converts between Astro block/validator types and ABCI requests/responses; drives `InitChain` and `FinalizeBlock` over gRPC.
+- `AbciExecutor` (Rust, `crates/astro-chain/src/abci_executor.rs`): converts between Astro block/validator types and ABCI requests/responses; drives `InitChain` and `FinalizeBlock` over gRPC.
 - Simapp (Go, `simapp/`): stock Cosmos SDK wiring that hosts x/astro; provides ABCI server CometBFT expects.
 - x/astro module (Go, `simapp/x/astro/`): owns genesis layout, params, and the validator set record; keeps the SDK view aligned with the consensus-layer identity.
 

@@ -1,5 +1,5 @@
 mod types;
-mod abci_executor;
+mod abci;
 
 pub use types::*;
-pub use abci_executor::AbciExecutor;
+pub use abci::AbciExecutor;

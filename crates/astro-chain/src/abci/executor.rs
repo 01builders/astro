@@ -83,39 +83,6 @@ impl AbciExecutor {
         })
     }
 
-    pub async fn do_genesis(
-        &mut self,
-        genesis_time_unix_ms: u64,
-        initial_height: u64,
-        chain_id: String,
-        genesis: Vec<u8>,
-    ) -> Result<[u8; 32], AbciExecutorError> {
-        let request = RequestInitChain {
-            time: Some(Self::millis_to_timestamp(genesis_time_unix_ms)),
-            chain_id,
-            consensus_params: Some(ConsensusParams {
-                block: None,
-                evidence: None,
-                validator: None,
-                version: None,
-                abci: None,
-            }),
-            validators: vec![],
-            app_state_bytes: genesis.into(),
-            initial_height: initial_height as i64,
-        };
-        let resp = self.client.init_chain(request).await?.into_inner();
-
-        // Convert prost::Bytes to [u8; 32]
-        let app_hash: [u8; 32] = resp.app_hash.as_slice().try_into().map_err(|_| {
-            AbciExecutorError::Status(tonic::Status::invalid_argument(
-                "app_hash must be exactly 32 bytes",
-            ))
-        })?;
-
-        Ok(app_hash)
-    }
-
     fn astro_validator_into_comet_validator(
         val: AstroValidator,
     ) -> Result<CometValidator, AbciExecutorError> {
@@ -134,6 +101,21 @@ impl AbciExecutor {
             voting_power: 100, // for now since the network is one validator this is the default vp
             proposer_priority: 1,
         })
+    }
+
+    /// Drain pending mempool transactions from the provided receiver.
+    /// TODO: enforce size/limit policy.
+    pub fn pull_txs(
+        mempool_rx: &mut futures::channel::mpsc::Receiver<Vec<u8>>,
+    ) -> Vec<Vec<u8>> {
+        let mut txs = Vec::new();
+        while let Some(v) = mempool_rx
+            .try_next()
+            .expect("mempool channel was dropped")
+        {
+            txs.push(v);
+        }
+        txs
     }
 }
 

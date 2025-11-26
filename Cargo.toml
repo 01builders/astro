@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/astro-chain", "crates/cometbft-proto", "crates/application"]
+members = ["crates/astro-chain", "crates/cometbft-proto", "crates/astro-application"]
 
 [workspace.package]
 license = "Apache-2.0"

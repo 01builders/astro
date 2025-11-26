@@ -1,6 +1,6 @@
 mod block;
 mod consensus;
-mod genesis;
+pub(crate) mod genesis;
 mod block_result;
 
 pub use block::*;
