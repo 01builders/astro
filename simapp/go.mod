@@ -26,6 +26,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.7 // indirect
 	github.com/spf13/viper v1.20.1
+	github.com/supranational/blst v0.3.16
 	github.com/stretchr/testify v1.10.0 // indirect
 	go.uber.org/mock v0.5.2 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect

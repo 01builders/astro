@@ -1,5 +1,4 @@
-use astro_proto_types::cometbft::abci::v1beta2::Event;
-use astro_proto_types::cometbft::abci::v1beta3::{ExecTxResult};
+use cometbft_proto::tendermint::abci::{Event, ExecTxResult};
 
 pub struct BlockResult {
     pub app_hash: [u8; 32],

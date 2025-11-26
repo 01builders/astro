@@ -5,3 +5,8 @@ Astro is a minimalist consensus client that plugs directly into Cosmos SDK appli
 ## Motivation
 
 Cosmos chains typically rely on CometBFT for consensus. Astro aims to be an alternative implementation—written in Rust—that developers can swap in without touching their existing application logic.
+
+## Docs
+
+- `docs/consensus-bridge.md` — how CommonWare consensus ↔ AbciExecutor (Rust) ↔ Simapp (Go) ↔ x/astro module fit together.
+- CometBFT protos: Simapp currently uses `github.com/cometbft/cometbft v0.38.17`; Rust side builds the `cometbft-proto` crate from the vendored submodule in `third_party/cometbft/proto`.

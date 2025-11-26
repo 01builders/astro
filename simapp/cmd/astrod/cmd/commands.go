@@ -14,6 +14,7 @@ import (
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 
 	"github.com/binary-builders/astro/simapp"
+	astrocli "github.com/binary-builders/astro/simapp/x/astro/client/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -54,7 +55,7 @@ func initRootCmd(rootCmd *cobra.Command, txConfig client.TxConfig, basicManager 
 
 	rootCmd.AddCommand(
 		server.StatusCommand(),
-		genesisCommand(txConfig, basicManager),
+		genesisCommand(txConfig, basicManager, astrocli.NewGenesisBLSCmd(simapp.DefaultNodeHome)),
 		queryCommand(),
 		txCommand(),
 		keys.Commands(),

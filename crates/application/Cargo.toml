@@ -8,7 +8,7 @@ rust-version.workspace = true
 
 [dependencies]
 astro-types.workspace = true
-astro-proto-types.workspace = true
+cometbft-proto.workspace = true
 
 commonware-codec.workspace = true
 commonware-resolver.workspace = true

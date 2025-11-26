@@ -23,7 +23,11 @@ func (b AppModuleBasic) RegisterGRPCGatewayRoutes(context client.Context, mux *r
 	// No gRPC-Gateway routes for this module yet.
 }
 
-var _ sdkmodule.AppModuleBasic = AppModuleBasic{}
+var (
+	_ sdkmodule.AppModuleBasic = AppModuleBasic{}
+	_ sdkmodule.HasABCIGenesis = AppModule{}
+	_ appmodule.AppModule      = AppModule{}
+)
 
 func (AppModuleBasic) Name() string { return types.ModuleName }
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
@@ -53,8 +57,6 @@ type AppModule struct {
 func (am AppModule) IsOnePerModuleType() {}
 
 func (am AppModule) IsAppModule() {}
-
-var _ appmodule.AppModule = AppModule{}
 
 func NewAppModule(_ codec.Codec, k keeper.Keeper) AppModule {
 	return AppModule{keeper: k}

@@ -1,9 +1,10 @@
 use crate::block_result::BlockResult;
-use astro_proto_types::cometbft::abci::v1beta3::{
-    RequestFinalizeBlock, RequestInitChain, ResponseFinalizeBlock, abci_client::AbciClient,
-};
-use astro_proto_types::cometbft::types::v1::{ConsensusParams, Validator as CometValidator};
 use astro_types::{Block as AstroBlock, Validator as AstroValidator};
+use cometbft_proto::tendermint::abci::abci_client::AbciClient;
+use cometbft_proto::tendermint::abci::{
+    RequestFinalizeBlock, RequestInitChain, ResponseFinalizeBlock,
+};
+use cometbft_proto::tendermint::types::{ConsensusParams, Validator as CometValidator};
 use commonware_codec::Encode;
 use tonic::transport::Channel;
 
@@ -20,8 +21,6 @@ pub struct AbciExecutor {
     client: AbciClient<Channel>,
 }
 
-impl AbciExecutor {}
-
 impl AbciExecutor {
     /// Convert Unix timestamp in milliseconds to prost_types::Timestamp
     fn millis_to_timestamp(millis: u64) -> prost_types::Timestamp {
@@ -36,11 +35,11 @@ impl AbciExecutor {
     }
 
     pub async fn connect(endpoint: &str) -> Result<Self, tonic::transport::Error> {
-        let client = AbciClient::connect(endpoint.to_string()).await?;
+        let client = ABCIClient::connect(endpoint.to_string()).await?;
         Ok(Self::new(client, endpoint.to_string()))
     }
 
-    pub(super) fn new(client: AbciClient<Channel>, original_endpoint: String) -> Self {
+    pub(super) fn new(client: ABCIClient<Channel>, original_endpoint: String) -> Self {
         Self {
             client,
             original_endpoint,

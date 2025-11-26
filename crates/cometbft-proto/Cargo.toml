@@ -1,0 +1,19 @@
+[package]
+name = "cometbft-proto"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+bytes.workspace = true
+prost.workspace = true
+prost-types.workspace = true
+tonic = { workspace = true, features = ["transport"] }
+
+[build-dependencies]
+tonic-build.workspace = true

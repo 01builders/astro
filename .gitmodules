@@ -1,0 +1,3 @@
+[submodule "cometbft"]
+	path = third_party/cometbft
+	url = https://github.com/cometbft/cometbft.git
