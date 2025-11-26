@@ -1,13 +1,18 @@
+use crate::abci::genesis::GenesisHandler;
 use crate::types::{Block as AstroBlock, BlockResult, Validator as AstroValidator};
 use cometbft_proto::google::protobuf::Timestamp;
 use cometbft_proto::tendermint::{
-    abci::{abci_client::AbciClient, RequestFinalizeBlock, RequestInitChain, ResponseFinalizeBlock},
+    abci::{
+        RequestFinalizeBlock, RequestInitChain, ResponseFinalizeBlock, abci_client::AbciClient,
+    },
     crypto,
     types::{ConsensusParams, Validator as CometValidator},
 };
 use commonware_codec::Encode;
 use tonic::transport::Channel;
 
+// TODO: abci executor error impl from GenesisError
+// TODO pull tx returns error and is async
 #[derive(Debug, thiserror::Error)]
 pub enum AbciExecutorError {
     #[error("tonic: {0}")]
@@ -19,6 +24,7 @@ pub enum AbciExecutorError {
 pub struct AbciExecutor {
     original_endpoint: String,
     client: AbciClient<Channel>,
+    genesis_handler: GenesisHandler,
 }
 
 impl AbciExecutor {
@@ -28,7 +34,10 @@ impl AbciExecutor {
         let remaining_millis = millis % 1000;
         let nanos = remaining_millis * 1_000_000; // Convert remaining milliseconds to nanoseconds
 
-        Timestamp { seconds: seconds as i64, nanos: nanos as i32 }
+        Timestamp {
+            seconds: seconds as i64,
+            nanos: nanos as i32,
+        }
     }
 
     pub async fn connect(endpoint: &str) -> Result<Self, tonic::transport::Error> {
@@ -40,7 +49,21 @@ impl AbciExecutor {
         Self {
             client,
             original_endpoint,
+            genesis_handler: GenesisHandler::new(std::env::current_dir().unwrap_or_default()),
         }
+    }
+
+    pub async fn do_genesis(
+        &mut self,
+        genesis_digest: crate::Digest,
+    ) -> Result<([u8; 32], Vec<cometbft_proto::tendermint::abci::ValidatorUpdate>), AbciExecutorError>
+    {
+        let (app_hash, validators) = self
+            .genesis_handler
+            .do_genesis(genesis_digest, &mut self.client)
+            .await
+            .map_err(|e| AbciExecutorError::Status(tonic::Status::internal(e.to_string())))?;
+        Ok((app_hash, validators))
     }
 
     async fn finalize_block(
@@ -58,10 +81,7 @@ impl AbciExecutor {
         self.convert_cometbft_response_to_digest(resp)
     }
 
-    fn convert_block_to_finalize_request(
-        &self,
-        _block: &AstroBlock,
-    ) -> RequestFinalizeBlock {
+    fn convert_block_to_finalize_request(&self, _block: &AstroBlock) -> RequestFinalizeBlock {
         todo!()
     }
 
@@ -105,17 +125,11 @@ impl AbciExecutor {
 
     /// Drain pending mempool transactions from the provided receiver.
     /// TODO: enforce size/limit policy.
-    fn pull_txs(
-        mempool_rx: &mut futures::channel::mpsc::Receiver<Vec<u8>>,
+    pub fn pull_txs(
+        &self,
+        _mempool_rx: &mut futures::channel::mpsc::Receiver<Vec<u8>>,
     ) -> Vec<Vec<u8>> {
-        let mut txs = Vec::new();
-        while let Some(v) = mempool_rx
-            .try_next()
-            .expect("mempool channel was dropped")
-        {
-            txs.push(v);
-        }
-        txs
+        Vec::new()
     }
 }
 

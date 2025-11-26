@@ -1,7 +1,7 @@
 mod block;
+mod block_result;
 mod consensus;
 pub(crate) mod genesis;
-mod block_result;
 
 pub use block::*;
 pub use block_result::BlockResult;

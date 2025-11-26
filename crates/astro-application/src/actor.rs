@@ -147,7 +147,8 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
         response: futures::channel::oneshot::Sender<Digest>,
         genesis_digest: Digest,
     ) {
-        let app_hash = self
+        // TODO: handle valset.
+        let (app_hash, _valset) = self
             .abci_executor
             .do_genesis(genesis_digest)
             .await
@@ -175,7 +176,7 @@ impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
         };
 
         // Pull transactions before spawning the task
-        let txs = astro_chain::AbciExecutor::pull_txs(&mut self.mempool_rx);
+        let txs = self.abci_executor.pull_txs().await.unwrap();
 
         // Wait for the parent block to be available or the request to be cancelled in a separate task (to
         // continue processing other messages)
