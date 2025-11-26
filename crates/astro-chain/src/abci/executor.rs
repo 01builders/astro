@@ -27,7 +27,7 @@ pub struct AbciExecutor {
 
 impl AbciExecutor {
     /// Convert Unix timestamp in milliseconds to prost_types::Timestamp
-    fn millis_to_timestamp(millis: u64) -> Timestamp {
+    pub(crate) fn millis_to_timestamp(millis: u64) -> Timestamp {
         let seconds = millis / 1000;
         let remaining_millis = millis % 1000;
         let nanos = remaining_millis * 1_000_000; // Convert remaining milliseconds to nanoseconds
