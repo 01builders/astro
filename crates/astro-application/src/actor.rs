@@ -32,7 +32,7 @@ pub struct Actor<R: Rng + Spawner + Metrics + Clock> {
     mailbox: Receiver<Message>,
     abci_executor: AbciExecutor,
     block_results_handler: UnboundedSender<BlockResult>,
-    pub(super) mempool_rx: Receiver<Vec<u8>>,
+    mempool_rx: Receiver<Vec<u8>>,
 }
 
 impl<R: Rng + Spawner + Metrics + Clock> Actor<R> {
